@@ -25,7 +25,7 @@ using Wujek_Dualsense_API;
 To start using the DualSense controller, create an instance of the Dualsense class, specifying the controller number (e.g., 0 for the first controller):
 
 ```csharp
-Dualsense controller = new Dualsense(0);
+Dualsense dualsense = new Dualsense(0);
 ```
 
 ### Examples
