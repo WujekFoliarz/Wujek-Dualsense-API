@@ -2,6 +2,8 @@
 
 Wujek Dualsense API is a .NET library designed to interface with the PlayStation DualSense controller, providing functionalities to control its various features such as haptic feedback, LEDs, triggers, and more.
 
+https://www.nuget.org/packages/Wujek_Dualsense_API
+
 ## Features
 
 - Initialize and manage DualSense controllers via USB or Bluetooth
