@@ -26,6 +26,7 @@ namespace Wujek_Dualsense_API
         private Vibrations.VibrationType rumbleMode = Vibrations.VibrationType.Standard_Rumble;
         private HapticFeedback hapticFeedback;
         private Dictionary<string, byte[]> WAV_CACHE = new Dictionary<string, byte[]>();
+        private bool bt_initialized = false;
 
         public State ButtonState = new State();
         public byte LeftRotor = 0;
@@ -98,6 +99,8 @@ namespace Wujek_Dualsense_API
             SetPlayerLED(PlayerLED.OFF);
             SetMicrophoneLED(MicrophoneLED.OFF);
             SetLightbar(0, 0, 0);
+            if (connectionType == ConnectionType.BT)
+                SetLightbar(0, 0, 255);
             SetLeftTrigger(TriggerType.TriggerModes.Rigid_B, 0, 0, 0, 0, 0, 0, 0);
             SetRightTrigger(TriggerType.TriggerModes.Rigid_B, 0, 0, 0, 0, 0, 0, 0);
             SetStandardRumble(0, 0);
@@ -108,55 +111,58 @@ namespace Wujek_Dualsense_API
 
         public void PlayHaptics(string PathToWAV, float FileVolumeSpeaker, float fileVolumeLeftActuator, float FileVolumeRightActuator, bool ClearBuffer)
         {
-            new Task(() =>
+            if(connectionType == ConnectionType.USB)
             {
-                if (rumbleMode == Vibrations.VibrationType.Haptic_Feedback)
+                new Task(() =>
                 {
-                    hapticFeedback.setVolume(FileVolumeSpeaker, fileVolumeLeftActuator, FileVolumeRightActuator);
-
-                    if (!WAV_CACHE.Keys.Contains(PathToWAV))
+                    if (rumbleMode == Vibrations.VibrationType.Haptic_Feedback)
                     {
-                        byte[] file = File.ReadAllBytes(PathToWAV);
-                        WAV_CACHE.Add(PathToWAV, file);
+                        hapticFeedback.setVolume(FileVolumeSpeaker, fileVolumeLeftActuator, FileVolumeRightActuator);
 
-                        try
+                        if (!WAV_CACHE.Keys.Contains(PathToWAV))
                         {
-                            if (ClearBuffer)
-                                hapticFeedback.bufferedWaveProvider.ClearBuffer();
+                            byte[] file = File.ReadAllBytes(PathToWAV);
+                            WAV_CACHE.Add(PathToWAV, file);
 
-                            hapticFeedback.bufferedWaveProvider.AddSamples(file, 0, file.Length);
-                        }
-                        catch (Exception e)
-                        {
-                            hapticFeedback.bufferedWaveProvider.ClearBuffer();
-                            hapticFeedback.bufferedWaveProvider.AddSamples(file, 0, file.Length);
-                        }
-
-                        file = null;
-                    }
-                    else
-                    {
-                        foreach (KeyValuePair<string, byte[]> pair in WAV_CACHE)
-                        {
-                            if (pair.Key == PathToWAV)
+                            try
                             {
-                                try
-                                {
-                                    if (ClearBuffer)
-                                        hapticFeedback.bufferedWaveProvider.ClearBuffer();
-
-                                    hapticFeedback.bufferedWaveProvider.AddSamples(pair.Value, 0, pair.Value.Length);
-                                }
-                                catch (Exception e)
-                                {
+                                if (ClearBuffer)
                                     hapticFeedback.bufferedWaveProvider.ClearBuffer();
-                                    hapticFeedback.bufferedWaveProvider.AddSamples(pair.Value, 0, pair.Value.Length);
+
+                                hapticFeedback.bufferedWaveProvider.AddSamples(file, 0, file.Length);
+                            }
+                            catch (Exception e)
+                            {
+                                hapticFeedback.bufferedWaveProvider.ClearBuffer();
+                                hapticFeedback.bufferedWaveProvider.AddSamples(file, 0, file.Length);
+                            }
+
+                            file = null;
+                        }
+                        else
+                        {
+                            foreach (KeyValuePair<string, byte[]> pair in WAV_CACHE)
+                            {
+                                if (pair.Key == PathToWAV)
+                                {
+                                    try
+                                    {
+                                        if (ClearBuffer)
+                                            hapticFeedback.bufferedWaveProvider.ClearBuffer();
+
+                                        hapticFeedback.bufferedWaveProvider.AddSamples(pair.Value, 0, pair.Value.Length);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        hapticFeedback.bufferedWaveProvider.ClearBuffer();
+                                        hapticFeedback.bufferedWaveProvider.AddSamples(pair.Value, 0, pair.Value.Length);
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            }).Start();
+                }).Start();
+            }
         }
 
         public void ClearHapticFeedbackCache()
@@ -364,6 +370,52 @@ namespace Wujek_Dualsense_API
                 outReport[46] = (byte)lightbar.G;
                 outReport[47] = (byte)lightbar.B;
             }
+            else if (connectionType == ConnectionType.BT)
+            {
+                outReport[0] = 0x31;
+                outReport[1] = 2;
+                outReport[2] = (byte)rumbleMode;
+                if (bt_initialized == false)
+                {
+                    outReport[3] = 0x1 | 0x2 | 0x4 | 0x8 | 0x10 | 0x40;
+                    bt_initialized = true;
+                }
+                else if (bt_initialized == true)
+                {
+                    outReport[3] = 0x1 | 0x2 | 0x4 | 0x10 | 0x40;
+                }
+                outReport[4] = (byte)RightRotor; // right low freq motor 0-255
+                outReport[5] = (byte)LeftRotor; // left low freq motor 0-255
+                outReport[10] = (byte)micLed; //microphone led
+                outReport[11] = (byte)microphoneStatus;
+                outReport[12] = (byte)RightTriggerMode;
+                outReport[13] = (byte)RightTriggerForces[0];
+                outReport[14] = (byte)RightTriggerForces[1];
+                outReport[15] = (byte)RightTriggerForces[2];
+                outReport[16] = (byte)RightTriggerForces[3];
+                outReport[17] = (byte)RightTriggerForces[4];
+                outReport[18] = (byte)RightTriggerForces[5];
+                outReport[21] = (byte)RightTriggerForces[6];
+                outReport[23] = (byte)LeftTriggerMode;
+                outReport[24] = (byte)LeftTriggerForces[0];
+                outReport[25] = (byte)LeftTriggerForces[1];
+                outReport[26] = (byte)LeftTriggerForces[2];
+                outReport[27] = (byte)LeftTriggerForces[3];
+                outReport[28] = (byte)LeftTriggerForces[4];
+                outReport[29] = (byte)LeftTriggerForces[5];
+                outReport[32] = (byte)LeftTriggerForces[6];
+                outReport[40] = (byte)Brightness.high;
+                outReport[43] = (byte)Brightness.high;
+                outReport[44] = (byte)micLedPulse;
+                outReport[45] = (byte)Brightness.high;
+                outReport[45] = (byte)_playerLED;
+                outReport[46] = (byte)lightbar.R;
+                outReport[47] = (byte)lightbar.G;
+                outReport[48] = (byte)lightbar.B;
+                uint crcChecksum = CRC32.ComputeCRC32(outReport, 74);
+                byte[] checksumBytes = BitConverter.GetBytes(crcChecksum);
+                Array.Copy(checksumBytes, 0, outReport, 74, 4);
+            }
 
             try
             {
@@ -373,11 +425,6 @@ namespace Wujek_Dualsense_API
             {
                 Working = false;
             }
-        }
-
-        private void InitializeBluetoothController()
-        {
-
         }
 
         private ConnectionType getConnectionType()
@@ -403,12 +450,11 @@ namespace Wujek_Dualsense_API
             Working = false;
             ResetSettings();
             Write();
-            hapticFeedback.Dispose();
+            if(connectionType == ConnectionType.USB)
+                hapticFeedback.Dispose();
             DSDevice.Dispose();
         }
     }
-
-
 
     public class State
     {
