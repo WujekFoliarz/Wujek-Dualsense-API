@@ -15,6 +15,8 @@ Wujek Dualsense API is a .NET library designed to interface with the PlayStation
 
 ### Installation
 
+Download x64 hidapi.dll from https://github.com/libusb/hidapi/releases and put it in your build folder
+
 Add the library to your project by including the `Wujek_Dualsense_API` namespace:
 
 ```csharp
