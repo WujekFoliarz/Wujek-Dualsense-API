@@ -1,4 +1,4 @@
-﻿using HidApi;
+﻿using HidSharp;
 using static Wujek_Dualsense_API.LED;
 using static Wujek_Dualsense_API.Motion;
 
@@ -6,7 +6,7 @@ namespace Wujek_Dualsense_API
 {
     public class Dualsense : IDisposable
     {
-        private Device DSDevice;
+        private DeviceStream DSDevice;
         private ConnectionType connectionType;
         private int reportLength = 0;
         private int offset = 0;
@@ -35,19 +35,21 @@ namespace Wujek_Dualsense_API
 
         public Dualsense(int ControllerNumber)
         {
-            List<DeviceInfo> devices = new List<DeviceInfo>();
-            
-            foreach (var deviceInfo in Hid.Enumerate())
+            DeviceList list = DeviceList.Local;
+            List<Device> devices = new List<Device>();
+
+            foreach (var deviceInfo in list.GetHidDevices())
             {
-                if (deviceInfo.VendorId == 1356 && deviceInfo.ProductId == 3302)
+                if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3302)
                 {
+                    reportLength = deviceInfo.GetMaxOutputReportLength();
                     devices.Add(deviceInfo);
                 }
             }
 
             try
             {
-                DSDevice = devices[ControllerNumber].ConnectToDevice();
+                DSDevice = devices[ControllerNumber].Open();
                 this.ControllerNumber = ControllerNumber;
             }
             catch (ArgumentOutOfRangeException)
@@ -55,12 +57,7 @@ namespace Wujek_Dualsense_API
                 throw new Exception("Couldn't find Dualsense device number: " + ControllerNumber);
             }
 
-            connectionType = getConnectionType();
-
-            if (connectionType == ConnectionType.BT)
-            {
-                // implement bluetooth init
-            }
+            connectionType = getConnectionType();          
 
             if (connectionType == ConnectionType.USB)
             {
@@ -266,8 +263,8 @@ namespace Wujek_Dualsense_API
 
         private void Read()
         {
-            ReadOnlySpan<byte> output = DSDevice.Read(reportLength);
-            byte[] ButtonStates = output.ToArray();
+            byte[] ButtonStates = new byte[reportLength];
+            DSDevice.Read(ButtonStates);
             if (connectionType == ConnectionType.BT) { offset = 1; }
 
             // ButtonButtonStates 0 is always 1
@@ -419,30 +416,30 @@ namespace Wujek_Dualsense_API
 
             try
             {
-                DSDevice.Write(outReport);
+                DSDevice.WriteAsync(outReport, 0, reportLength);
             }
-            catch (HidException)
+            catch (Exception e)
             {
+                Console.WriteLine(e.Message + e.Source + e.StackTrace);
                 Working = false;
             }
         }
 
         private ConnectionType getConnectionType()
         {
-            var report = DSDevice.Read(100);
-            if (report.Length == 64)
+            if (reportLength == 48)
             {
                 reportLength = 64;
                 offset = 0;
                 return ConnectionType.USB;
             }
-            else if (report.Length == 78)
+            else if (reportLength == 547)
             {
                 reportLength = 78;
                 offset = 1;
                 return ConnectionType.BT;
             }
-            else { throw new ArgumentException("Could not specify connection type."); }
+            else { Console.WriteLine(reportLength); throw new ArgumentException("Could not specify connection type."); }
         }
 
         public void Dispose()
