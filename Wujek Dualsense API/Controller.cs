@@ -7,7 +7,7 @@ namespace Wujek_Dualsense_API
     public class Dualsense : IDisposable
     {
         private DeviceStream DSDevice;
-        private ConnectionType connectionType;
+        public ConnectionType ConnectionType;
         private int reportLength = 0;
         private int offset = 0;
         public bool Working { get; private set; } = false;
@@ -57,9 +57,9 @@ namespace Wujek_Dualsense_API
                 throw new Exception("Couldn't find Dualsense device number: " + ControllerNumber);
             }
 
-            connectionType = getConnectionType();          
+            this.ConnectionType = getConnectionType();          
 
-            if (connectionType == ConnectionType.USB)
+            if (this.ConnectionType == ConnectionType.USB)
             {
                 SetSpeakerVolume(100);
                 SetMicrophoneVolume(100);
@@ -96,7 +96,7 @@ namespace Wujek_Dualsense_API
             SetPlayerLED(PlayerLED.OFF);
             SetMicrophoneLED(MicrophoneLED.OFF);
             SetLightbar(0, 0, 0);
-            if (connectionType == ConnectionType.BT)
+            if (this.ConnectionType == ConnectionType.BT)
                 SetLightbar(0, 0, 255);
             SetLeftTrigger(TriggerType.TriggerModes.Rigid_B, 0, 0, 0, 0, 0, 0, 0);
             SetRightTrigger(TriggerType.TriggerModes.Rigid_B, 0, 0, 0, 0, 0, 0, 0);
@@ -108,7 +108,7 @@ namespace Wujek_Dualsense_API
 
         public void PlayHaptics(string PathToWAV, float FileVolumeSpeaker, float fileVolumeLeftActuator, float FileVolumeRightActuator, bool ClearBuffer)
         {
-            if(connectionType == ConnectionType.USB)
+            if(this.ConnectionType == ConnectionType.USB)
             {
                 new Task(() =>
                 {
@@ -265,7 +265,7 @@ namespace Wujek_Dualsense_API
         {
             byte[] ButtonStates = new byte[reportLength];
             DSDevice.Read(ButtonStates);
-            if (connectionType == ConnectionType.BT) { offset = 1; }
+            if (this.ConnectionType == ConnectionType.BT) { offset = 1; }
 
             // ButtonButtonStates 0 is always 1
             ButtonState.LX = ButtonStates[1 + offset];
@@ -329,7 +329,7 @@ namespace Wujek_Dualsense_API
         {
             byte[] outReport = new byte[reportLength];
 
-            if (connectionType == ConnectionType.USB)
+            if (this.ConnectionType == ConnectionType.USB)
             {
                 outReport[0] = 2;
                 outReport[1] = (byte)rumbleMode;
@@ -367,7 +367,7 @@ namespace Wujek_Dualsense_API
                 outReport[46] = (byte)lightbar.G;
                 outReport[47] = (byte)lightbar.B;
             }
-            else if (connectionType == ConnectionType.BT)
+            else if (this.ConnectionType == ConnectionType.BT)
             {
                 outReport[0] = 0x31;
                 outReport[1] = 2;
@@ -447,7 +447,7 @@ namespace Wujek_Dualsense_API
             Working = false;
             ResetSettings();
             Write();
-            if(connectionType == ConnectionType.USB)
+            if(this.ConnectionType == ConnectionType.USB)
                 hapticFeedback.Dispose();
             DSDevice.Dispose();
         }
