@@ -71,7 +71,8 @@ namespace Wujek_Dualsense_API
                 hapticStream.AudioStreamVolume.SetChannelVolume(2, leftActuatorVolume);
                 hapticStream.AudioStreamVolume.SetChannelVolume(3, rightActuatorVolume);
             }
-            catch (ArgumentOutOfRangeException) {
+            catch (ArgumentOutOfRangeException)
+            {
                 throw new ArgumentOutOfRangeException("Volume must be between 0.0 and 1.0.");
             }
         }
