@@ -1,5 +1,7 @@
-﻿using NAudio.CoreAudioApi;
+﻿using System.Linq;
+using NAudio.CoreAudioApi;
 using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 
 namespace Wujek_Dualsense_API
 {
@@ -44,9 +46,9 @@ namespace Wujek_Dualsense_API
 
             bufferedWaveProvider.BufferLength = 5000000; // 5MB buffer
             bufferedWaveProvider.ReadFully = true;
-            hapticStream = new WasapiOut(device, AudioClientShareMode.Shared, true, 10);
+            hapticStream = new WasapiOut(device, AudioClientShareMode.Shared, false, 10);
 
-            MultiplexingWaveProvider multiplexingWaveProvider = new MultiplexingWaveProvider(new IWaveProvider[] {
+            MultiplexingWaveProvider multiplexingWaveProvider = new MultiplexingWaveProvider(new BufferedWaveProvider[] {
                 bufferedWaveProvider,
             }, 4);
 
