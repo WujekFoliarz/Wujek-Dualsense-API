@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <NoWarn>$(NoWarn);NU1605</NoWarn>
 	  <TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
 	  <RootNamespace>Wujek_Dualsense_API</RootNamespace>
 	  <ImplicitUsings>enable</ImplicitUsings>
@@ -11,7 +10,7 @@
 	  <Company></Company>
 	  <PackageId>Wujek_Dualsense_API</PackageId>
 	  <Title>Wujek Dualsense API</Title>
-	  <Version>1.1.0</Version>
+	  <Version>1.1.1</Version>
 	  <Authors>Wujek_Foliarz</Authors>
 	  <Product>Wujek Dualsense API</Product>
 	  <Description>Wujek Dualsense API is a .NET library designed to interface with the PlayStation DualSense controller, providing functionalities to control its various features such as haptic feedback, LEDs, triggers, and more.</Description>
@@ -25,8 +24,8 @@
 
   <ItemGroup>
     <PackageReference Include="HidSharp" Version="2.1.0" />
-    <PackageReference Include="NAudio" Version="2.2.1" />
-	<PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
+    <PackageReference Include="NAudio" Version="2.0.1" />
+	<PackageReference Include="NAudio.Wasapi" Version="2.0.0" />
   </ItemGroup>
 
 </Project>

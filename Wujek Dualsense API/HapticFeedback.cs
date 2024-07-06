@@ -1,7 +1,5 @@
-﻿using System.Linq;
-using NAudio.CoreAudioApi;
+﻿using NAudio.CoreAudioApi;
 using NAudio.Wave;
-using NAudio.Wave.SampleProviders;
 
 namespace Wujek_Dualsense_API
 {

@@ -42,7 +42,12 @@ namespace Wujek_Dualsense_API
 
             foreach (var deviceInfo in list.GetHidDevices())
             {
-                if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3302)
+                if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3302) // DualSense
+                {
+                    reportLength = deviceInfo.GetMaxOutputReportLength();
+                    devices.Add(deviceInfo);
+                }
+                else if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3570) // DualSense Edge
                 {
                     reportLength = deviceInfo.GetMaxOutputReportLength();
                     devices.Add(deviceInfo);
@@ -487,9 +492,15 @@ namespace Wujek_Dualsense_API
 
         private ConnectionType getConnectionType()
         {
+
             if (reportLength == 48)
             {
                 reportLength = 64;
+                offset = 0;
+                return ConnectionType.USB;
+            }
+            else if (reportLength == 64)
+            {
                 offset = 0;
                 return ConnectionType.USB;
             }
