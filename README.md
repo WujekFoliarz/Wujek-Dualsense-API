@@ -62,3 +62,6 @@ Console.ReadLine();
 
 dualsense.Dispose() // Disconnects from the controller and resets any applied settings
 ```
+
+### Known Issues
+- Noticeable popping sound when playing WAVs through speaker, needs to be fixed
