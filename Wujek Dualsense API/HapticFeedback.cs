@@ -44,17 +44,24 @@ namespace Wujek_Dualsense_API
 
             bufferedWaveProvider.BufferLength = 5000000; // 5MB buffer
             bufferedWaveProvider.ReadFully = true;
-            hapticStream = new WasapiOut(device, AudioClientShareMode.Shared, false, 10);
+            hapticStream = new WasapiOut(device, AudioClientShareMode.Shared, true, 10);
 
             MultiplexingWaveProvider multiplexingWaveProvider = new MultiplexingWaveProvider(new BufferedWaveProvider[] {
                 bufferedWaveProvider,
             }, 4);
 
+            Console.WriteLine(device);
             multiplexingWaveProvider.ConnectInputToOutput(0, 0);
             multiplexingWaveProvider.ConnectInputToOutput(0, 1);
             multiplexingWaveProvider.ConnectInputToOutput(0, 2);
             multiplexingWaveProvider.ConnectInputToOutput(0, 3);
             hapticStream.Init(multiplexingWaveProvider);
+            Thread t = new Thread(new ThreadStart(Play));
+            t.Start();
+        }
+
+        private void Play()
+        {
             hapticStream.Play();
         }
 

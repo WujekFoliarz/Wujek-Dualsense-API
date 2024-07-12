@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace Wujek_Dualsense_API
+﻿namespace Wujek_Dualsense_API
 {
     public class ConnectionStatus
     {

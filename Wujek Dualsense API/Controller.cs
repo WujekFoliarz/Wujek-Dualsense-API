@@ -123,55 +123,16 @@ namespace Wujek_Dualsense_API
         {
             if (this.ConnectionType == ConnectionType.USB && rumbleMode == Vibrations.VibrationType.Haptic_Feedback)
             {
-                new Task(() =>
+                hapticFeedback.setVolume(FileVolumeSpeaker, fileVolumeLeftActuator, FileVolumeRightActuator);
+
+                if (!WAV_CACHE.Keys.Contains(PathToWAV))
                 {
-                    hapticFeedback.setVolume(FileVolumeSpeaker, fileVolumeLeftActuator, FileVolumeRightActuator);
-
-                    if (!WAV_CACHE.Keys.Contains(PathToWAV))
+                    byte[] file = File.ReadAllBytes(PathToWAV);
+                    try
                     {
-                        byte[] file = File.ReadAllBytes(PathToWAV);
-                        try
-                        {
-                            WAV_CACHE.Add(PathToWAV, file);
-                        }
-                        catch (ArgumentException)
-                        {
-                            foreach (KeyValuePair<string, byte[]> pair in WAV_CACHE)
-                            {
-                                if (pair.Key == PathToWAV)
-                                {
-                                    try
-                                    {
-                                        if (ClearBuffer)
-                                            hapticFeedback.bufferedWaveProvider.ClearBuffer();
-
-                                        hapticFeedback.bufferedWaveProvider.AddSamples(pair.Value, 0, pair.Value.Length);
-                                    }
-                                    catch (Exception)
-                                    {
-                                        hapticFeedback.bufferedWaveProvider.ClearBuffer();
-                                        hapticFeedback.bufferedWaveProvider.AddSamples(pair.Value, 0, pair.Value.Length);
-                                    }
-                                }
-                            }
-                        }
-
-                        try
-                        {
-                            if (ClearBuffer)
-                                hapticFeedback.bufferedWaveProvider.ClearBuffer();
-
-                            hapticFeedback.bufferedWaveProvider.AddSamples(file, 0, file.Length);
-                        }
-                        catch (Exception)
-                        {
-                            hapticFeedback.bufferedWaveProvider.ClearBuffer();
-                            hapticFeedback.bufferedWaveProvider.AddSamples(file, 0, file.Length);
-                        }
-
-                        file = null;
+                        WAV_CACHE.Add(PathToWAV, file);
                     }
-                    else
+                    catch (ArgumentException)
                     {
                         foreach (KeyValuePair<string, byte[]> pair in WAV_CACHE)
                         {
@@ -192,7 +153,43 @@ namespace Wujek_Dualsense_API
                             }
                         }
                     }
-                }).Start();
+
+                    try
+                    {
+                        if (ClearBuffer)
+                            hapticFeedback.bufferedWaveProvider.ClearBuffer();
+
+                        hapticFeedback.bufferedWaveProvider.AddSamples(file, 0, file.Length);
+                    }
+                    catch (Exception)
+                    {
+                        hapticFeedback.bufferedWaveProvider.ClearBuffer();
+                        hapticFeedback.bufferedWaveProvider.AddSamples(file, 0, file.Length);
+                    }
+
+                    file = null;
+                }
+                else
+                {
+                    foreach (KeyValuePair<string, byte[]> pair in WAV_CACHE)
+                    {
+                        if (pair.Key == PathToWAV)
+                        {
+                            try
+                            {
+                                if (ClearBuffer)
+                                    hapticFeedback.bufferedWaveProvider.ClearBuffer();
+
+                                hapticFeedback.bufferedWaveProvider.AddSamples(pair.Value, 0, pair.Value.Length);
+                            }
+                            catch (Exception)
+                            {
+                                hapticFeedback.bufferedWaveProvider.ClearBuffer();
+                                hapticFeedback.bufferedWaveProvider.AddSamples(pair.Value, 0, pair.Value.Length);
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -399,7 +396,7 @@ namespace Wujek_Dualsense_API
             }
             catch (Exception e)
             {
-                if(e.Message.Contains("Operation failed after some time"))
+                if (e.Message.Contains("Operation failed after some time"))
                 {
                     Connection.OnControllerDisconnect(ControllerNumber);
                 }
