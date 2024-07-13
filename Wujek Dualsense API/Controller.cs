@@ -1,5 +1,8 @@
 ﻿using HidSharp;
+using Nefarius.Utilities.DeviceManagement.PnP;
+using System.Diagnostics;
 using System.Windows.Forms;
+using Windows.Devices.Input;
 using static Wujek_Dualsense_API.LED;
 using static Wujek_Dualsense_API.Motion;
 
@@ -13,6 +16,7 @@ namespace Wujek_Dualsense_API
         private int reportLength = 0;
         private int offset = 0;
         public bool Working { get; private set; } = false;
+        public string AudioDeviceID { get; private set; } = string.Empty;
 
         private Task transitionTask;
         private CancellationTokenSource cts = new();
@@ -48,6 +52,7 @@ namespace Wujek_Dualsense_API
                 if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3302) // DualSense
                 {
                     reportLength = deviceInfo.GetMaxOutputReportLength();
+                    
                     devices.Add(deviceInfo);
                 }
                 else if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3570) // DualSense Edge
@@ -60,6 +65,7 @@ namespace Wujek_Dualsense_API
             try
             {
                 DSDevice = devices[ControllerNumber].Open();
+
                 this.ControllerNumber = ControllerNumber;
             }
             catch (ArgumentOutOfRangeException)
@@ -71,9 +77,10 @@ namespace Wujek_Dualsense_API
 
             if (this.ConnectionType == ConnectionType.USB)
             {
+                AudioDeviceID = PnPDevice.GetDeviceByInterfaceId(devices[ControllerNumber].DevicePath).Parent.DeviceId.ToString();
                 SetSpeakerVolume(100);
                 SetMicrophoneVolume(100);
-                hapticFeedback = new HapticFeedback(ControllerNumber);
+                hapticFeedback = new HapticFeedback(ControllerNumber, AudioDeviceID);
             }
         }
 

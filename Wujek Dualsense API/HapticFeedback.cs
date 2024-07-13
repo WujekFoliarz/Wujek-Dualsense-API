@@ -1,5 +1,9 @@
 ﻿using NAudio.CoreAudioApi;
 using NAudio.Wave;
+using Nefarius.Utilities.DeviceManagement.Extensions;
+using Nefarius.Utilities.DeviceManagement.PnP;
+using System.Text.RegularExpressions;
+using Windows.Devices.Enumeration.Pnp;
 
 namespace Wujek_Dualsense_API
 {
@@ -11,30 +15,24 @@ namespace Wujek_Dualsense_API
         public float speakerPlaybackVolume = 1;
         public float leftActuatorVolume = 1;
         public float rightActuatorVolume = 1;
+        
 
-        public HapticFeedback(int ControllerNumber)
+        public HapticFeedback(int ControllerNumber, string AudioDeviceID)
         {
             MMDeviceEnumerator mmdeviceEnumerator = new MMDeviceEnumerator();
             foreach (MMDevice mmdevice in mmdeviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
             {
+                mmdevice.GetPropertyInformation(NAudio.CoreAudioApi.Interfaces.StorageAccessMode.Read);
+                Regex rg = new Regex(@"[{\d}]*\.(.*)$");
+                PropertyStoreProperty controllerDeviceId = mmdevice.Properties[PropertyKeys.PKEY_Device_ControllerDeviceId];
+                Match deviceIdMatch = rg.Match((string)controllerDeviceId.Value);
+                string instancePath = deviceIdMatch.Groups[1].Value;
 
-                if (ControllerNumber > 0)
+                if (instancePath.ToLower().Substring(0, AudioDeviceID.Length - 4).Replace("mi_00", "") == AudioDeviceID.ToLower().Substring(0, AudioDeviceID.Length - 4).Replace("mi_03", ""))
                 {
-                    if (mmdevice.FriendlyName.Contains("Wireless Controller") && mmdevice.FriendlyName.Contains(Convert.ToString(ControllerNumber + 1)))
-                    {
-                        device = mmdevice;
-                        break;
-                    }
+                    device = mmdevice;
+                    break;
                 }
-                else
-                {
-                    if (mmdevice.FriendlyName.Contains("Wireless Controller") && !mmdevice.FriendlyName.Contains("2") && !mmdevice.FriendlyName.Contains("3") && !mmdevice.FriendlyName.Contains("4"))
-                    {
-                        device = mmdevice;
-                        break;
-                    }
-                }
-
             }
 
             if (device == null || device.State == DeviceState.NotPresent || device.State == DeviceState.Unplugged)
@@ -50,7 +48,6 @@ namespace Wujek_Dualsense_API
                 bufferedWaveProvider,
             }, 4);
 
-            Console.WriteLine(device);
             multiplexingWaveProvider.ConnectInputToOutput(0, 0);
             multiplexingWaveProvider.ConnectInputToOutput(0, 1);
             multiplexingWaveProvider.ConnectInputToOutput(0, 2);
