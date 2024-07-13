@@ -65,3 +65,5 @@ dualsense.Dispose() // Disconnects from the controller and resets any applied se
 
 ### Known Issues
 - Noticeable popping sound when playing WAVs through speaker, needs to be fixed
+
+## Special thanks to Nefarius
