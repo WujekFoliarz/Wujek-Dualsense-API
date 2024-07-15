@@ -52,12 +52,6 @@ namespace Wujek_Dualsense_API
                 if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3302) // DualSense
                 {
                     reportLength = deviceInfo.GetMaxOutputReportLength();
-                    
-                    devices.Add(deviceInfo);
-                }
-                else if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3570) // DualSense Edge
-                {
-                    reportLength = deviceInfo.GetMaxOutputReportLength();
                     devices.Add(deviceInfo);
                 }
             }
@@ -79,7 +73,7 @@ namespace Wujek_Dualsense_API
             {
                 AudioDeviceID = PnPDevice.GetDeviceByInterfaceId(devices[ControllerNumber].DevicePath).Parent.DeviceId.ToString();
                 SetSpeakerVolume(100);
-                SetMicrophoneVolume(100);
+                SetMicrophoneVolume(35);
                 hapticFeedback = new HapticFeedback(ControllerNumber, AudioDeviceID);
             }
         }
@@ -113,16 +107,20 @@ namespace Wujek_Dualsense_API
             SetVibrationType(Vibrations.VibrationType.Haptic_Feedback); // Haptic feedback is native
             SetPlayerLED(PlayerLED.OFF);
             SetMicrophoneLED(MicrophoneLED.OFF);
-            SetLightbar(0, 0, 0);
+
             if (this.ConnectionType == ConnectionType.BT)
                 SetLightbar(0, 0, 255);
+            else
+                SetLightbar(0, 0, 0);
+
             SetLeftTrigger(TriggerType.TriggerModes.Rigid_B, 0, 0, 0, 0, 0, 0, 0);
             SetRightTrigger(TriggerType.TriggerModes.Rigid_B, 0, 0, 0, 0, 0, 0, 0);
             SetStandardRumble(0, 0);
+
             if (this.ConnectionType == ConnectionType.USB)
             {
                 TurnMicrophoneOn();
-                SetMicrophoneVolume(100);
+                SetMicrophoneVolume(35);
             }
         }
 
@@ -526,24 +524,17 @@ namespace Wujek_Dualsense_API
 
         private ConnectionType getConnectionType()
         {
-            if (reportLength == 48)
-            {
-                reportLength = 64;
-                offset = 0;
-                return ConnectionType.USB;
-            }
-            else if (reportLength == 64)
-            {
-                offset = 0;
-                return ConnectionType.USB;
-            }
-            else if (reportLength == 547)
+            if (reportLength >= 78)
             {
                 reportLength = 78;
                 offset = 1;
                 return ConnectionType.BT;
             }
-            else { Console.WriteLine(reportLength); throw new ArgumentException("Could not specify connection type."); }
+            else {
+                reportLength = 64;
+                offset = 0;
+                return ConnectionType.USB;
+            }
         }
 
 
