@@ -405,6 +405,10 @@ namespace Wujek_Dualsense_API
                 {
                     Connection.OnControllerDisconnect(ControllerNumber);
                 }
+                else if (e.Message.Contains("OverlappedOperation"))
+                {
+                    Connection.OnControllerDisconnect(ControllerNumber);
+                }
                 else
                 {
                     MessageBox.Show(e.Message + e.Source + e.StackTrace);
