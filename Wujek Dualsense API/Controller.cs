@@ -401,21 +401,17 @@ namespace Wujek_Dualsense_API
             }
             catch (Exception e)
             {
+                Working = false;
                 if (e.Message.Contains("Operation failed after some time"))
-                {
-                    Connection.OnControllerDisconnect(ControllerNumber);
-                }
-                else if (e.Message.Contains("OverlappedOperation"))
                 {
                     Connection.OnControllerDisconnect(ControllerNumber);
                 }
                 else
                 {
-                    MessageBox.Show(e.Message + e.Source + e.StackTrace);
-                    Console.WriteLine(e.Message + e.Source + e.StackTrace);
+                    Connection.OnControllerDisconnect(ControllerNumber);
+                    //MessageBox.Show(e.Message + e.Source + e.StackTrace);
+                    //Console.WriteLine(e.Message + e.Source + e.StackTrace);
                 }
-
-                Working = false;
             }
         }
 
