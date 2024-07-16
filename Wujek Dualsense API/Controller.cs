@@ -124,6 +124,17 @@ namespace Wujek_Dualsense_API
             }
         }
 
+        public void StartSystemAudioToHaptics()
+        {
+            hapticFeedback.setNewPlayback();
+            hapticFeedback.SystemAudioPlayback = true;
+        }
+
+        public void StopSystemAudioToHaptics()
+        {
+            hapticFeedback.SystemAudioPlayback = false;
+        }
+
         public void PlayHaptics(string PathToWAV, float FileVolumeSpeaker, float fileVolumeLeftActuator, float FileVolumeRightActuator, bool ClearBuffer)
         {
             if (this.ConnectionType == ConnectionType.USB && rumbleMode == Vibrations.VibrationType.Haptic_Feedback)
@@ -544,7 +555,9 @@ namespace Wujek_Dualsense_API
             ResetSettings();
             Write();
             if (this.ConnectionType == ConnectionType.USB)
+            {
                 hapticFeedback.Dispose();
+            }
             DSDevice.Dispose();
         }
     }
