@@ -28,10 +28,17 @@ namespace Wujek_Dualsense_API
                 Match deviceIdMatch = rg.Match((string)controllerDeviceId.Value);
                 string instancePath = deviceIdMatch.Groups[1].Value;
 
-                if (instancePath.ToLower().Substring(0, AudioDeviceID.Length - 4).Replace("mi_00", "") == AudioDeviceID.ToLower().Substring(0, AudioDeviceID.Length - 4).Replace("mi_03", ""))
+                try
                 {
-                    device = mmdevice;
-                    break;
+                    if (instancePath.ToLower().Substring(0, AudioDeviceID.Length - 4).Replace("mi_00", "") == AudioDeviceID.ToLower().Substring(0, AudioDeviceID.Length - 4).Replace("mi_03", ""))
+                    {
+                        device = mmdevice;
+                        break;
+                    }
+                }
+                catch
+                {
+                    continue;
                 }
             }
 
