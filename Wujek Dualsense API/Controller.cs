@@ -291,6 +291,11 @@ namespace Wujek_Dualsense_API
                 throw new ArgumentException("The speaker volume cannot be lower than 0 or higher than 200.");
         }
 
+        public void SetSpeakerVolumeInSoftware(float SpeakerVolume, float LeftActuatorVolume, float RightActuatorVolume)
+        {
+            hapticFeedback.setVolume(SpeakerVolume, LeftActuatorVolume, RightActuatorVolume);
+        }
+
         public void SetLightbar(int R, int G, int B)
         {
             if (transitionTask != null && !transitionTask.IsCompleted) // Cancel any transitions
