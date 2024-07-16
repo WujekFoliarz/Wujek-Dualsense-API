@@ -51,7 +51,7 @@ dualsense.Dispose() // Disconnects from the controller and resets any applied se
 
 ### Haptic Feedback example
 
-### To play correctly, the WAV file must be a Stereo 48KHz Linear PCM 32Bit sound
+### To play correctly, the WAV file must be a Stereo 48KHz IEEE Float PCM
 
 ```csharp
 dualsense.Start(); // Start listening
@@ -62,8 +62,5 @@ Console.ReadLine();
 
 dualsense.Dispose() // Disconnects from the controller and resets any applied settings
 ```
-
-### Known Issues
-- Noticeable popping sound when playing WAVs through speaker, needs to be fixed
 
 ## Special thanks to Nefarius
