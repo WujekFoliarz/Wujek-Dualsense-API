@@ -12,6 +12,7 @@ https://www.nuget.org/packages/Wujek_Dualsense_API
 - Adjust microphone and speaker volumes
 - Access button states and sensor data (gyroscope, accelerometer)
 - Play audio haptics from WAV files
+- Convert system audio to haptics in real time
 
 ## Getting Started
 
