@@ -38,7 +38,7 @@ dualsense.Start(); // Start listening
 dualsense.SetLightbar(0, 0, 255); // R G B
 dualsense.SetPlayerLED(LED.PlayerLED.PLAYER_1); // The white LEDs below the touchpad
 dualsense.SetMicrophoneLED(LED.MicrophoneLED.OFF); // Microphone LED
-dualsense.SetMicrophoneVolume(100); // Microphone Volume
+dualsense.SetMicrophoneVolume(35); // Microphone Volume (35 is default)
 dualsense.SetSpeakerVolume(100); // Speaker Volume
 dualsense.SetLeftTrigger(TriggerType.TriggerModes.Pulse_AB, 93, 84, 0, 255, 255, 0, 0); // Example adaptive trigger
 dualsense.SetRightTrigger(TriggerType.TriggerModes.Pulse_B, 14, 255, 0, 14, 255, 0, 0); // Example adaptive trigger
@@ -47,7 +47,7 @@ dualsense.SetStandardRumble(100, 255); // Start vibrations
 
 Console.ReadLine();
 
-dualsense.Dispose() // Disconnects from the controller and resets any applied settings
+dualsense.Dispose(); // Disconnects from the controller and resets any applied settings
 ```
 
 ### Haptic Feedback example
@@ -61,7 +61,7 @@ dualsense.PlayHaptics("player_collar_beep_end_0.wav", 1.0f, 1.0f, 1.0f, true); /
 
 Console.ReadLine();
 
-dualsense.Dispose() // Disconnects from the controller and resets any applied settings
+dualsense.Dispose(); // Disconnects from the controller and resets any applied settings
 ```
 
 ## Special thanks to Nefarius
