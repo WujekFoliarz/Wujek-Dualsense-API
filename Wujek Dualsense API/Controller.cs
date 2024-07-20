@@ -1,8 +1,6 @@
 ﻿using HidSharp;
 using Nefarius.Utilities.DeviceManagement.PnP;
-using System.Diagnostics;
 using System.Windows.Forms;
-using Windows.Devices.Input;
 using static Wujek_Dualsense_API.LED;
 using static Wujek_Dualsense_API.Motion;
 
@@ -11,6 +9,7 @@ namespace Wujek_Dualsense_API
     public class Dualsense : IDisposable
     {
         private DeviceStream DSDevice;
+        public DeviceType DeviceType;
         public ConnectionStatus Connection { get; set; }
         public ConnectionType ConnectionType;
         private int reportLength = 0;
@@ -52,6 +51,13 @@ namespace Wujek_Dualsense_API
                 if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3302) // DualSense
                 {
                     reportLength = deviceInfo.GetMaxOutputReportLength();
+                    DeviceType = DeviceType.DualSense;
+                    devices.Add(deviceInfo);
+                }
+                else if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3570) // DualSense Edge
+                {
+                    reportLength = deviceInfo.GetMaxOutputReportLength();
+                    DeviceType = DeviceType.DualSense_Edge;
                     devices.Add(deviceInfo);
                 }
             }
@@ -540,16 +546,35 @@ namespace Wujek_Dualsense_API
 
         private ConnectionType getConnectionType()
         {
-            if (reportLength >= 78)
+            if (DeviceType == DeviceType.DualSense)
             {
-                reportLength = 78;
-                offset = 1;
-                return ConnectionType.BT;
+                if (reportLength >= 78)
+                {
+                    reportLength = 78;
+                    offset = 1;
+                    return ConnectionType.BT;
+                }
+                else
+                {
+                    reportLength = 48;
+                    offset = 0;
+                    return ConnectionType.USB;
+                }
             }
-            else {
-                reportLength = 64;
-                offset = 0;
-                return ConnectionType.USB;
+            else
+            {
+                if (reportLength >= 94)
+                {
+                    reportLength = 94;
+                    offset = 1;
+                    return ConnectionType.BT;
+                }
+                else
+                {
+                    reportLength = 64;
+                    offset = 0;
+                    return ConnectionType.USB;
+                }
             }
         }
 
