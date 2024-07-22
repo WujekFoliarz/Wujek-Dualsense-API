@@ -299,7 +299,7 @@ namespace Wujek_Dualsense_API
 
         public void SetSpeakerVolumeInSoftware(float SpeakerVolume, float LeftActuatorVolume, float RightActuatorVolume)
         {
-            if(this.ConnectionType == ConnectionType.USB && rumbleMode == Vibrations.VibrationType.Haptic_Feedback)
+            if(hapticFeedback != null && this.ConnectionType == ConnectionType.USB && rumbleMode == Vibrations.VibrationType.Haptic_Feedback)
             {
                 hapticFeedback.setVolume(SpeakerVolume, LeftActuatorVolume, RightActuatorVolume);
             }
