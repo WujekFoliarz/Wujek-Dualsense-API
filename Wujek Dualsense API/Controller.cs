@@ -299,7 +299,10 @@ namespace Wujek_Dualsense_API
 
         public void SetSpeakerVolumeInSoftware(float SpeakerVolume, float LeftActuatorVolume, float RightActuatorVolume)
         {
-            hapticFeedback.setVolume(SpeakerVolume, LeftActuatorVolume, RightActuatorVolume);
+            if(this.ConnectionType == ConnectionType.BT && rumbleMode == Vibrations.VibrationType.Haptic_Feedback)
+            {
+                hapticFeedback.setVolume(SpeakerVolume, LeftActuatorVolume, RightActuatorVolume);
+            }
         }
 
         public void SetLightbar(int R, int G, int B)
