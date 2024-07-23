@@ -42,7 +42,7 @@ namespace Wujek_Dualsense_API
                 }
             }
 
-            if (device == null || device.State == DeviceState.NotPresent || device.State == DeviceState.Unplugged)
+            if (device == null || device.State == DeviceState.NotPresent || device.State == DeviceState.Unplugged || device.State == DeviceState.Disabled)
             {
                 return;
             }
