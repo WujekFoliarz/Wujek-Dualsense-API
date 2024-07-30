@@ -16,6 +16,7 @@ namespace Wujek_Dualsense_API
         private int offset = 0;
         public bool Working { get; private set; } = false;
         public string AudioDeviceID { get; private set; } = string.Empty;
+        public string DeviceID { get; private set; } = string.Empty;
 
         private Task transitionTask;
         private CancellationTokenSource cts = new();
@@ -58,13 +59,14 @@ namespace Wujek_Dualsense_API
                 {
                     reportLength = deviceInfo.GetMaxOutputReportLength();
                     DeviceType = DeviceType.DualSense_Edge;
-                    devices.Add(deviceInfo);
+                    devices.Add(deviceInfo);                   
                 }
             }
 
             try
             {
                 DSDevice = devices[ControllerNumber].Open();
+                DeviceID = devices[ControllerNumber].DevicePath;
 
                 this.ControllerNumber = ControllerNumber;
             }
@@ -239,28 +241,28 @@ namespace Wujek_Dualsense_API
             }
         }
 
-        public void SetLeftTrigger(TriggerType.TriggerModes triggerMode, int forceOne, int forceTwo, int forceThree, int forceFour, int fourceFive, int fourceSix, int fourceSeven)
+        public void SetLeftTrigger(TriggerType.TriggerModes triggerMode, int forceOne, int forceTwo, int forceThree, int forceFour, int forceFive, int forceSix, int forceSeven)
         {
             LeftTriggerMode = triggerMode;
             LeftTriggerForces[0] = forceOne;
             LeftTriggerForces[1] = forceTwo;
             LeftTriggerForces[2] = forceThree;
             LeftTriggerForces[3] = forceFour;
-            LeftTriggerForces[4] = fourceFive;
-            LeftTriggerForces[5] = fourceSix;
-            LeftTriggerForces[6] = fourceSeven;
+            LeftTriggerForces[4] = forceFive;
+            LeftTriggerForces[5] = forceSix;
+            LeftTriggerForces[6] = forceSeven;
         }
 
-        public void SetRightTrigger(TriggerType.TriggerModes triggerMode, int forceOne, int forceTwo, int forceThree, int forceFour, int fourceFive, int fourceSix, int fourceSeven)
+        public void SetRightTrigger(TriggerType.TriggerModes triggerMode, int forceOne, int forceTwo, int forceThree, int forceFour, int forceFive, int forceSix, int forceSeven)
         {
             RightTriggerMode = triggerMode;
             RightTriggerForces[0] = forceOne;
             RightTriggerForces[1] = forceTwo;
             RightTriggerForces[2] = forceThree;
             RightTriggerForces[3] = forceFour;
-            RightTriggerForces[4] = fourceFive;
-            RightTriggerForces[5] = fourceSix;
-            RightTriggerForces[6] = fourceSeven;
+            RightTriggerForces[4] = forceFive;
+            RightTriggerForces[5] = forceSix;
+            RightTriggerForces[6] = forceSeven;
         }
 
         public void TurnMicrophoneOn()
