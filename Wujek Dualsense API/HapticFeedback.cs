@@ -26,23 +26,39 @@ namespace Wujek_Dualsense_API
                 Regex rg = new Regex(@"[{\d}]*\.(.*)$");
                 PropertyStoreProperty controllerDeviceId = mmdevice.Properties[PropertyKeys.PKEY_Device_ControllerDeviceId];
                 Match deviceIdMatch = rg.Match((string)controllerDeviceId.Value);
-                string instancePath = deviceIdMatch.Groups[1].Value;
 
-                try
+                for (int i = 0; i < deviceIdMatch.Groups.Count; i++)
                 {
-                    if (instancePath.ToLower().Substring(0, AudioDeviceID.Length - 4).Replace("mi_00", "") == AudioDeviceID.ToLower().Substring(0, AudioDeviceID.Length - 4).Replace("mi_03", ""))
+                    try
+                    {
+                        string instancePath = deviceIdMatch.Groups[i].Value;
+                        if (instancePath.ToLower().Substring(0, AudioDeviceID.Length - 4).Replace("mi_00", "") == AudioDeviceID.ToLower().Substring(0, AudioDeviceID.Length - 4).Replace("mi_03", ""))
+                        {
+                            device = mmdevice;
+                            break;
+                        }
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                }
+
+            }
+
+            if (device == null) // If the audio device couldn't be found with Device ID, use device name instead. This won't work with multiple controllers but that's better than nothing.
+            {
+                foreach (MMDevice mmdevice in mmdeviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
+                {
+                    if (mmdevice.FriendlyName.Contains("Wireless Controller"))
                     {
                         device = mmdevice;
                         break;
                     }
                 }
-                catch
-                {
-                    continue;
-                }
             }
 
-            if (device == null || device.State == DeviceState.NotPresent || device.State == DeviceState.Unplugged || device.State == DeviceState.Disabled)
+            if (device == null || device.State == DeviceState.NotPresent || device.State == DeviceState.Unplugged || device.State == DeviceState.Disabled) // Return if both failed
             {
                 return;
             }
@@ -94,20 +110,23 @@ namespace Wujek_Dualsense_API
 
         public void setVolume(float speaker, float left, float right)
         {
-            speakerPlaybackVolume = speaker;
-            leftActuatorVolume = left;
-            rightActuatorVolume = right;
+            if (hapticStream != null)
+            {
+                speakerPlaybackVolume = speaker;
+                leftActuatorVolume = left;
+                rightActuatorVolume = right;
 
-            try
-            {
-                hapticStream.AudioStreamVolume.SetChannelVolume(0, speakerPlaybackVolume);
-                hapticStream.AudioStreamVolume.SetChannelVolume(1, speakerPlaybackVolume);
-                hapticStream.AudioStreamVolume.SetChannelVolume(2, leftActuatorVolume);
-                hapticStream.AudioStreamVolume.SetChannelVolume(3, rightActuatorVolume);
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                throw new ArgumentOutOfRangeException("Volume must be between 0.0 and 1.0.");
+                try
+                {
+                    hapticStream.AudioStreamVolume.SetChannelVolume(0, speakerPlaybackVolume);
+                    hapticStream.AudioStreamVolume.SetChannelVolume(1, speakerPlaybackVolume);
+                    hapticStream.AudioStreamVolume.SetChannelVolume(2, leftActuatorVolume);
+                    hapticStream.AudioStreamVolume.SetChannelVolume(3, rightActuatorVolume);
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    throw new ArgumentOutOfRangeException("Volume must be between 0.0 and 1.0.");
+                }
             }
         }
 

@@ -59,7 +59,7 @@ namespace Wujek_Dualsense_API
                 {
                     reportLength = deviceInfo.GetMaxOutputReportLength();
                     DeviceType = DeviceType.DualSense_Edge;
-                    devices.Add(deviceInfo);                   
+                    devices.Add(deviceInfo);
                 }
             }
 
@@ -301,7 +301,7 @@ namespace Wujek_Dualsense_API
 
         public void SetSpeakerVolumeInSoftware(float SpeakerVolume, float LeftActuatorVolume, float RightActuatorVolume)
         {
-            if(hapticFeedback != null && this.ConnectionType == ConnectionType.USB && rumbleMode == Vibrations.VibrationType.Haptic_Feedback)
+            if (hapticFeedback != null && this.ConnectionType == ConnectionType.USB && rumbleMode == Vibrations.VibrationType.Haptic_Feedback)
             {
                 hapticFeedback.setVolume(SpeakerVolume, LeftActuatorVolume, RightActuatorVolume);
             }
