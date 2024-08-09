@@ -23,8 +23,9 @@
         [Flags]
         public enum MicrophoneLED
         {
-            ON = 1,
-            OFF = 0
+            PULSE = 0x2,
+            ON = 0x1,
+            OFF = 0x0
         }
 
         [Flags]

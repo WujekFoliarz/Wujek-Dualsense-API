@@ -2,8 +2,8 @@
 
 Dualsense dualsense = new Dualsense(0);
 dualsense.Start();
-dualsense.SetVibrationType(Vibrations.VibrationType.Haptic_Feedback);
 dualsense.Connection.ControllerDisconnected += Connection_ControllerDisconnected;
+dualsense.SetMicrophoneLED(LED.MicrophoneLED.PULSE);
 dualsense.SetLightbar(255, 255, 255);
 dualsense.SetSpeakerVolumeInSoftware(0, 1, 1);
 

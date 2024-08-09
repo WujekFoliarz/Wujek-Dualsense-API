@@ -35,6 +35,7 @@ namespace Wujek_Dualsense_API
         private HapticFeedback hapticFeedback;
         private Dictionary<string, byte[]> WAV_CACHE = new Dictionary<string, byte[]>();
         private bool bt_initialized = false;
+        private FeatureType featureType = FeatureType.FULL;
 
         public State ButtonState = new State();
         public byte LeftRotor = 0;
@@ -113,13 +114,11 @@ namespace Wujek_Dualsense_API
         public void ResetSettings()
         {
             SetVibrationType(Vibrations.VibrationType.Haptic_Feedback); // Haptic feedback is native
-            SetPlayerLED(PlayerLED.OFF);
-            SetMicrophoneLED(MicrophoneLED.OFF);
 
             if (this.ConnectionType == ConnectionType.BT)
                 SetLightbar(0, 0, 255);
             else
-                SetLightbar(0, 0, 0);
+                ReleaseLED();
 
             SetLeftTrigger(TriggerType.TriggerModes.Rigid_B, 0, 0, 0, 0, 0, 0, 0);
             SetRightTrigger(TriggerType.TriggerModes.Rigid_B, 0, 0, 0, 0, 0, 0, 0);
@@ -217,16 +216,30 @@ namespace Wujek_Dualsense_API
             }
         }
 
+        /// <summary>
+        /// Removes WAV files from memory.
+        /// </summary>
+        /// <returns></returns>
         public void ClearHapticFeedbackCache()
         {
             WAV_CACHE.Clear();
         }
 
+        /// <summary>
+        /// Sets the type of vibration your controller will use.
+        /// </summary>
+        /// <returns></returns>
         public void SetVibrationType(Vibrations.VibrationType vibrationType)
         {
             rumbleMode = vibrationType;
         }
 
+        /// <summary>
+        /// Sets standard rumble vibrations.
+        /// </summary>
+        /// <param name="LeftRumble">Left rumble strength 0-255</param>
+        /// <param name="RightRumble">Right rumble strength 0-255</param>
+        /// <returns></returns>
         public void SetStandardRumble(byte LeftRumble, byte RightRumble)
         {
             if (LeftRumble >= 0 && RightRumble >= 0 &&
@@ -241,6 +254,10 @@ namespace Wujek_Dualsense_API
             }
         }
 
+        /// <summary>
+        /// Sets adaptive trigger effect for left trigger
+        /// </summary>
+        /// <returns></returns>
         public void SetLeftTrigger(TriggerType.TriggerModes triggerMode, int forceOne, int forceTwo, int forceThree, int forceFour, int forceFive, int forceSix, int forceSeven)
         {
             LeftTriggerMode = triggerMode;
@@ -253,6 +270,10 @@ namespace Wujek_Dualsense_API
             LeftTriggerForces[6] = forceSeven;
         }
 
+        /// <summary>
+        /// Sets adaptive trigger effect for right trigger
+        /// </summary>
+        /// <returns></returns>
         public void SetRightTrigger(TriggerType.TriggerModes triggerMode, int forceOne, int forceTwo, int forceThree, int forceFour, int forceFive, int forceSix, int forceSeven)
         {
             RightTriggerMode = triggerMode;
@@ -265,21 +286,28 @@ namespace Wujek_Dualsense_API
             RightTriggerForces[6] = forceSeven;
         }
 
+        /// <summary>
+        /// Unmutes the microphone
+        /// </summary>
+        /// <returns></returns>
         public void TurnMicrophoneOn()
         {
             microphoneStatus = Microphone.MicrophoneStatus.ON;
         }
 
+        /// <summary>
+        /// Mutes the microphone
+        /// </summary>
+        /// <returns></returns>
         public void TurnMicrophoneOff()
         {
             microphoneStatus = Microphone.MicrophoneStatus.OFF;
         }
 
-        public LED.MicrophoneLED GetMicrophoneLED()
-        {
-            return micLed;
-        }
-
+        /// <summary>
+        /// Sets the controller's microphone volume on hardware level, 0-200
+        /// </summary>
+        /// <returns></returns>
         public void SetMicrophoneVolume(int Volume)
         {
             if (Volume >= 0 && Volume <= 200)
@@ -288,6 +316,10 @@ namespace Wujek_Dualsense_API
                 throw new ArgumentException("The microphone volume cannot be lower than 0 or higher than 200.");
         }
 
+        /// <summary>
+        /// Sets the controller's speaker volume on hardware level, 0-200
+        /// </summary>
+        /// <returns></returns>
         public void SetSpeakerVolume(int Volume)
         {
             if (Volume != 0)
@@ -299,6 +331,10 @@ namespace Wujek_Dualsense_API
                 throw new ArgumentException("The speaker volume cannot be lower than 0 or higher than 200.");
         }
 
+        /// <summary>
+        /// Sets the controller's speaker and actuator volumes on software level, 0f-1f
+        /// </summary>
+        /// <returns></returns>
         public void SetSpeakerVolumeInSoftware(float SpeakerVolume, float LeftActuatorVolume, float RightActuatorVolume)
         {
             if (hapticFeedback != null && this.ConnectionType == ConnectionType.USB && rumbleMode == Vibrations.VibrationType.Haptic_Feedback)
@@ -307,8 +343,13 @@ namespace Wujek_Dualsense_API
             }
         }
 
+        /// <summary>
+        /// Sets lightbar color
+        /// </summary>
+        /// <returns></returns>
         public void SetLightbar(int R, int G, int B)
         {
+            featureType = FeatureType.FULL;
             if (transitionTask != null && !transitionTask.IsCompleted) // Cancel any transitions
                 cts.Cancel();
 
@@ -317,6 +358,12 @@ namespace Wujek_Dualsense_API
             lightbar.B = B;
         }
 
+        /// <summary>
+        /// Sets lightbar color with transition animation
+        /// </summary>
+        /// <param name="transitionSteps">Defines the number of incremental steps the transition will take from the current color to the target color.</param>
+        /// <param name="transitionDelay">Defines the time (in milliseconds) the program waits between each step of the transition.</param>
+        /// <returns></returns>
         public void SetLightbarTransition(int R, int G, int B, int transitionSteps, int transitionDelay)
         {
             if (transitionTask != null && !transitionTask.IsCompleted)
@@ -334,6 +381,7 @@ namespace Wujek_Dualsense_API
 
         private void transitionLightBar(int R, int G, int B, int transitionSteps, int transitionDelay, CancellationToken token)
         {
+            featureType = FeatureType.FULL;
             int startR = lightbar.R;
             int startG = lightbar.G;
             int startB = lightbar.B;
@@ -350,15 +398,36 @@ namespace Wujek_Dualsense_API
             }
         }
 
-
+        /// <summary>
+        /// Sets player LEDs
+        /// </summary>
+        /// <returns></returns>
         public void SetPlayerLED(PlayerLED PlayerLED)
         {
+            featureType = FeatureType.FULL;
             _playerLED = PlayerLED;
         }
 
+        /// <summary>
+        /// Sets microphone LED
+        /// </summary>
+        /// <returns></returns>
         public void SetMicrophoneLED(MicrophoneLED MicLED)
         {
+            featureType = FeatureType.FULL;
             micLed = MicLED;
+        }
+
+        /// <summary>
+        /// Release the LEDs from API
+        /// </summary>
+        /// <returns></returns>
+        public void ReleaseLED()
+        {
+            SetPlayerLED(PlayerLED.OFF);
+            SetLightbar(0, 0, 0);
+            SetMicrophoneLED(MicrophoneLED.OFF);
+            featureType = FeatureType.LETGO;
         }
 
         private void Read()
@@ -456,7 +525,7 @@ namespace Wujek_Dualsense_API
             {
                 outReport[0] = 2;
                 outReport[1] = (byte)rumbleMode;
-                outReport[2] = 0x1 | 0x2 | 0x4 | 0x10 | 0x40;
+                outReport[2] = (byte)featureType;
                 outReport[3] = (byte)RightRotor; // right low freq motor 0-255
                 outReport[4] = (byte)LeftRotor; // left low freq motor 0-255
                 outReport[5] = 0x7C; // <-- headset volume
@@ -502,7 +571,7 @@ namespace Wujek_Dualsense_API
                 }
                 else if (bt_initialized == true)
                 {
-                    outReport[3] = 0x1 | 0x2 | 0x4 | 0x10 | 0x40;
+                    outReport[3] = (byte)featureType;
                 }
                 outReport[4] = (byte)RightRotor; // right low freq motor 0-255
                 outReport[5] = (byte)LeftRotor; // left low freq motor 0-255
@@ -583,13 +652,16 @@ namespace Wujek_Dualsense_API
             }
         }
 
-
+        /// <summary>
+        /// Releases the controller from API
+        /// </summary>
+        /// <returns></returns>
         public void Dispose()
         {
             Working = false;
             ResetSettings();
             Write();
-            if (this.ConnectionType == ConnectionType.USB)
+            if (this.ConnectionType == ConnectionType.USB && hapticFeedback != null)
             {
                 hapticFeedback.Dispose();
             }
