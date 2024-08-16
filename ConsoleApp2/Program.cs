@@ -6,6 +6,7 @@ dualsense.Connection.ControllerDisconnected += Connection_ControllerDisconnected
 dualsense.SetMicrophoneLED(LED.MicrophoneLED.PULSE);
 dualsense.SetLightbar(255, 255, 255);
 dualsense.SetSpeakerVolumeInSoftware(0, 1, 1);
+dualsense.SetAudioOutput(AudioOutput.HEADSET);
 
 void Connection_ControllerDisconnected(object? sender, ConnectionStatus.Controller e)
 {

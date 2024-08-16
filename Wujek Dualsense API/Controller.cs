@@ -1,6 +1,7 @@
 ﻿using HidSharp;
 using Nefarius.Utilities.DeviceManagement.PnP;
 using System.Windows.Forms;
+using Windows.Media.Core;
 using static Wujek_Dualsense_API.LED;
 using static Wujek_Dualsense_API.Motion;
 
@@ -32,6 +33,7 @@ namespace Wujek_Dualsense_API
         private int[] LeftTriggerForces = new int[7];
         private PulseOptions micLedPulse = PulseOptions.Off;
         private Vibrations.VibrationType rumbleMode = Vibrations.VibrationType.Haptic_Feedback;
+        private AudioOutput _audioOutput = AudioOutput.SPEAKER;
         private HapticFeedback hapticFeedback;
         private Dictionary<string, byte[]> WAV_CACHE = new Dictionary<string, byte[]>();
         private bool bt_initialized = false;
@@ -126,9 +128,15 @@ namespace Wujek_Dualsense_API
 
             if (this.ConnectionType == ConnectionType.USB)
             {
+                SetAudioOutput(AudioOutput.SPEAKER);
                 TurnMicrophoneOn();
                 SetMicrophoneVolume(35);
             }
+        }
+
+        public void SetAudioOutput(AudioOutput audioOutput)
+        {
+            _audioOutput = audioOutput;
         }
 
         public void StartSystemAudioToHaptics()
@@ -531,7 +539,7 @@ namespace Wujek_Dualsense_API
                 outReport[5] = 0x7C; // <-- headset volume
                 outReport[6] = (byte)SpeakerVolume; // <-- speaker volume
                 outReport[7] = (byte)MicrophoneVolume; // <-- mic volume
-                outReport[8] = 0x7C; // <-- no idea what that does
+                outReport[8] = (byte)_audioOutput; // <-- audio output
                 outReport[9] = (byte)micLed; //microphone led
                 outReport[10] = (byte)microphoneStatus;
                 outReport[11] = (byte)RightTriggerMode;
