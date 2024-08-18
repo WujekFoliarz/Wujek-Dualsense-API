@@ -17,14 +17,7 @@ void Connection_ControllerConnected(object? sender, ConnectionStatus.Controller 
     dualsense.SetLEDBrightness(LED.Brightness.HIGH);
     dualsense.SetLeftTrigger(TriggerType.TriggerModes.Pulse, 0,0,0,0,0,0,0);
 }
-while (true)
-{
-    if (dualsense.ButtonState.square)
-    {
-        Console.Write("X");
-    }
-    Thread.Sleep(1);
-}
+
 
 void Connection_ControllerDisconnected(object? sender, ConnectionStatus.Controller e)
 {

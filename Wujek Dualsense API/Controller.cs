@@ -168,6 +168,9 @@ namespace Wujek_Dualsense_API
             SetLeftTrigger(TriggerType.TriggerModes.Rigid_B, 0, 0, 0, 0, 0, 0, 0);
             SetRightTrigger(TriggerType.TriggerModes.Rigid_B, 0, 0, 0, 0, 0, 0, 0);
             SetStandardRumble(0, 0);
+            SetPlayerLED(PlayerLED.OFF);
+            SetMicrophoneLED(MicrophoneLED.OFF);
+            SetLEDBrightness(Brightness.HIGH);
 
             if (this.ConnectionType == ConnectionType.USB)
             {
@@ -732,14 +735,16 @@ namespace Wujek_Dualsense_API
         /// <returns></returns>
         public void Dispose()
         {
-            Working = false;
-            ResetSettings();
-            Write();
-            if (this.ConnectionType == ConnectionType.USB && hapticFeedback != null)
-            {
-                hapticFeedback.Dispose();
+            if (DSDevice != null) {
+                Working = false;
+                ResetSettings();
+                Write();
+                if (this.ConnectionType == ConnectionType.USB && hapticFeedback != null)
+                {
+                    hapticFeedback.Dispose();
+                }
+                DSDevice.Dispose();
             }
-            DSDevice.Dispose();
         }
     }
 
