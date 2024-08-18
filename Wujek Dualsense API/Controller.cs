@@ -48,8 +48,8 @@ namespace Wujek_Dualsense_API
         public Dualsense(int ControllerNumber)
         {
             Start();
-            Connection = new ConnectionStatus();
             this.ControllerNumber = ControllerNumber;
+            Connection = new ConnectionStatus();
             LookForController();
         }
 
@@ -65,6 +65,8 @@ namespace Wujek_Dualsense_API
                 {
                     while (true)
                     {
+                        devices.Clear();
+
                         foreach (var deviceInfo in list.GetHidDevices())
                         {
                             if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3302) // DualSense
@@ -85,8 +87,8 @@ namespace Wujek_Dualsense_API
 
                         try
                         {
-                            DSDevice = devices[ControllerNumber].Open();
-                            DeviceID = devices[ControllerNumber].DevicePath;
+                            DSDevice = devices[this.ControllerNumber].Open();
+                            DeviceID = devices[this.ControllerNumber].DevicePath;
 
                             this.ConnectionType = getConnectionType();
 
