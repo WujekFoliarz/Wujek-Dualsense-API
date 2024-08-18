@@ -123,8 +123,6 @@ namespace Wujek_Dualsense_API
 
         private void Start()
         {
-            Working = true;
-
             new Thread(() =>
             {
                 while (true)

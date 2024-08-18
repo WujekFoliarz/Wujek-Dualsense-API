@@ -18,6 +18,8 @@ void Connection_ControllerConnected(object? sender, ConnectionStatus.Controller 
     dualsense.SetLeftTrigger(TriggerType.TriggerModes.Pulse, 0,0,0,0,0,0,0);
 }
 
+Thread.Sleep(5000);
+Console.WriteLine(dualsense.Working);
 
 void Connection_ControllerDisconnected(object? sender, ConnectionStatus.Controller e)
 {
