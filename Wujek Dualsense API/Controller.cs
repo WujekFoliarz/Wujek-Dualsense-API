@@ -119,7 +119,7 @@ namespace Wujek_Dualsense_API
 
         }
 
-        public void Start()
+        private void Start()
         {
             Working = true;
 
