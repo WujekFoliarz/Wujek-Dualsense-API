@@ -7,6 +7,7 @@ dualsense.SetMicrophoneLED(LED.MicrophoneLED.PULSE);
 dualsense.SetLightbar(255, 255, 255);
 dualsense.SetSpeakerVolumeInSoftware(0, 1, 1);
 dualsense.SetAudioOutput(AudioOutput.HEADSET);
+dualsense.StartSystemAudioToHaptics();
 
 void Connection_ControllerDisconnected(object? sender, ConnectionStatus.Controller e)
 {
