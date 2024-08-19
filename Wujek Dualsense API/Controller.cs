@@ -8,7 +8,7 @@ using static Wujek_Dualsense_API.Motion;
 namespace Wujek_Dualsense_API
 {
     public class Dualsense : IDisposable
-    {
+    {       
         private DeviceStream DSDevice;
         public DeviceType DeviceType;
         public ConnectionStatus Connection { get; set; }
