@@ -1,7 +1,6 @@
 ﻿using HidSharp;
 using Nefarius.Utilities.DeviceManagement.PnP;
 using System.Windows.Forms;
-using Windows.Media.Core;
 using static Wujek_Dualsense_API.LED;
 using static Wujek_Dualsense_API.Motion;
 
@@ -21,23 +20,24 @@ namespace Wujek_Dualsense_API
 
         private Task transitionTask;
         private CancellationTokenSource cts = new();
+        private byte HeadsetVolume;
         private byte SpeakerVolume;
         private byte MicrophoneVolume;
         private MicrophoneLED micLed = MicrophoneLED.OFF;
         private Microphone.MicrophoneStatus microphoneStatus = Microphone.MicrophoneStatus.ON;
         private Lightbar lightbar = new Lightbar();
         private PlayerLED _playerLED = PlayerLED.OFF;
+        private Brightness ledBrightness = Brightness.HIGH;
         private TriggerType.TriggerModes RightTriggerMode = TriggerType.TriggerModes.Off;
         private TriggerType.TriggerModes LeftTriggerMode = TriggerType.TriggerModes.Off;
         private int[] RightTriggerForces = new int[7];
         private int[] LeftTriggerForces = new int[7];
-        private PulseOptions micLedPulse = PulseOptions.Off;
         private Vibrations.VibrationType rumbleMode = Vibrations.VibrationType.Haptic_Feedback;
-        private AudioOutput _audioOutput = AudioOutput.SPEAKER;
         private HapticFeedback hapticFeedback;
         private Dictionary<string, byte[]> WAV_CACHE = new Dictionary<string, byte[]>();
         private bool bt_initialized = false;
         private FeatureType featureType = FeatureType.FULL;
+        private bool Looking = false;
 
         public State ButtonState = new State();
         public byte LeftRotor = 0;
@@ -46,69 +46,111 @@ namespace Wujek_Dualsense_API
 
         public Dualsense(int ControllerNumber)
         {
+            Start();
+            this.ControllerNumber = ControllerNumber;
             Connection = new ConnectionStatus();
+            LookForController();
+        }
+
+        public void LookForController()
+        {
             DeviceList list = DeviceList.Local;
             List<Device> devices = new List<Device>();
 
-            foreach (var deviceInfo in list.GetHidDevices())
+            if (!Looking)
             {
-                if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3302) // DualSense
+                Looking = true;
+                new Task(() =>
                 {
-                    reportLength = deviceInfo.GetMaxOutputReportLength();
-                    DeviceType = DeviceType.DualSense;
-                    devices.Add(deviceInfo);
-                }
-                else if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3570) // DualSense Edge
-                {
-                    reportLength = deviceInfo.GetMaxOutputReportLength();
-                    DeviceType = DeviceType.DualSense_Edge;
-                    devices.Add(deviceInfo);
-                }
+                    while (true)
+                    {
+                        devices.Clear();
+
+                        foreach (var deviceInfo in list.GetHidDevices())
+                        {
+                            if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3302) // DualSense
+                            {
+                                reportLength = deviceInfo.GetMaxOutputReportLength();
+                                DeviceType = DeviceType.DualSense;
+                                devices.Add(deviceInfo);
+                            }
+                            else if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3570) // DualSense Edge
+                            {
+                                reportLength = deviceInfo.GetMaxOutputReportLength();
+                                DeviceType = DeviceType.DualSense_Edge;
+                                devices.Add(deviceInfo);
+                            }
+                        }
+
+                        Thread.Sleep(2500);
+
+                        try
+                        {
+                            DSDevice = devices[this.ControllerNumber].Open();
+                            DeviceID = devices[this.ControllerNumber].DevicePath;
+
+                            this.ConnectionType = getConnectionType();
+
+                            if (this.ConnectionType == ConnectionType.USB)
+                            {
+                                AudioDeviceID = PnPDevice.GetDeviceByInterfaceId(devices[ControllerNumber].DevicePath).Parent.DeviceId.ToString();
+                                SetSpeakerVolume(100);
+                                SetHeadsetVolume(100);
+                                SetMicrophoneVolume(35);
+                                hapticFeedback = new HapticFeedback(ControllerNumber, AudioDeviceID);
+                            }
+                            else
+                            {
+                                bt_initialized = false;
+                            }
+
+                            break;
+                        }
+                        catch (ArgumentOutOfRangeException e)
+                        {
+                            continue;
+                        }
+                    }
+
+                    Connection.OnControllerConnect(ControllerNumber);
+                    Looking = false;
+                    Working = true;
+                }).Start();
             }
 
-            try
-            {
-                DSDevice = devices[ControllerNumber].Open();
-                DeviceID = devices[ControllerNumber].DevicePath;
-
-                this.ControllerNumber = ControllerNumber;
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                throw new Exception("Couldn't find Dualsense device number: " + ControllerNumber);
-            }
-
-            this.ConnectionType = getConnectionType();
-
-            if (this.ConnectionType == ConnectionType.USB)
-            {
-                AudioDeviceID = PnPDevice.GetDeviceByInterfaceId(devices[ControllerNumber].DevicePath).Parent.DeviceId.ToString();
-                SetSpeakerVolume(100);
-                SetMicrophoneVolume(35);
-                hapticFeedback = new HapticFeedback(ControllerNumber, AudioDeviceID);
-            }
         }
 
-        public void Start()
+        private void Start()
         {
-            Working = true;
-
             new Thread(() =>
             {
-                while (Working)
+                while (true)
                 {
-                    Write();
-                    Thread.Sleep(25);
+                    if (Working && DSDevice != null)
+                    {
+                        Write();
+                        Thread.Sleep(25);
+                    }
+                    else
+                    {
+                        Thread.Sleep(100);
+                    }
                 }
             }).Start();
 
             new Thread(() =>
             {
-                Thread.CurrentThread.IsBackground = true;
-                Thread.CurrentThread.Priority = ThreadPriority.Highest;
-                while (Working)
+                while (true)
                 {
-                    Read();
+                    if (Working && DSDevice != null)
+                    {
+                        Read();
+                        Thread.Sleep(0);
+                    }
+                    else
+                    {
+                        Thread.Sleep(100);
+                    }
                 }
             }).Start();
         }
@@ -125,34 +167,39 @@ namespace Wujek_Dualsense_API
             SetLeftTrigger(TriggerType.TriggerModes.Rigid_B, 0, 0, 0, 0, 0, 0, 0);
             SetRightTrigger(TriggerType.TriggerModes.Rigid_B, 0, 0, 0, 0, 0, 0, 0);
             SetStandardRumble(0, 0);
+            SetPlayerLED(PlayerLED.OFF);
+            SetMicrophoneLED(MicrophoneLED.OFF);
+            SetLEDBrightness(Brightness.HIGH);
 
             if (this.ConnectionType == ConnectionType.USB)
             {
-                SetAudioOutput(AudioOutput.SPEAKER);
                 TurnMicrophoneOn();
                 SetMicrophoneVolume(35);
+                SetHeadsetVolume(100);
+                SetSpeakerVolume(100);
             }
-        }
-
-        public void SetAudioOutput(AudioOutput audioOutput)
-        {
-            _audioOutput = audioOutput;
         }
 
         public void StartSystemAudioToHaptics()
         {
-            hapticFeedback.setNewPlayback();
-            hapticFeedback.SystemAudioPlayback = true;
+            if (this.ConnectionType == ConnectionType.USB && hapticFeedback != null)
+            {
+                hapticFeedback.setNewPlayback();
+                hapticFeedback.SystemAudioPlayback = true;
+            }
         }
 
         public void StopSystemAudioToHaptics()
         {
-            hapticFeedback.SystemAudioPlayback = false;
+            if (this.ConnectionType == ConnectionType.USB && hapticFeedback != null)
+            {
+                hapticFeedback.SystemAudioPlayback = false;
+            }
         }
 
         public void PlayHaptics(string PathToWAV, float FileVolumeSpeaker, float fileVolumeLeftActuator, float FileVolumeRightActuator, bool ClearBuffer)
         {
-            if (this.ConnectionType == ConnectionType.USB && rumbleMode == Vibrations.VibrationType.Haptic_Feedback)
+            if (this.ConnectionType == ConnectionType.USB && rumbleMode == Vibrations.VibrationType.Haptic_Feedback && hapticFeedback != null)
             {
                 hapticFeedback.setVolume(FileVolumeSpeaker, fileVolumeLeftActuator, FileVolumeRightActuator);
 
@@ -240,6 +287,15 @@ namespace Wujek_Dualsense_API
         public void SetVibrationType(Vibrations.VibrationType vibrationType)
         {
             rumbleMode = vibrationType;
+        }
+
+        /// <summary>
+        /// Sets the brightness of player and microphone LED
+        /// </summary>
+        /// <returns></returns>
+        public void SetLEDBrightness(Brightness brightness)
+        {
+            ledBrightness = brightness;
         }
 
         /// <summary>
@@ -337,6 +393,21 @@ namespace Wujek_Dualsense_API
                 SpeakerVolume = Convert.ToByte(int.Parse(Convert.ToString(Volume)).ToString("X"), 16);
             else
                 throw new ArgumentException("The speaker volume cannot be lower than 0 or higher than 200.");
+        }
+
+        /// <summary>
+        /// Sets the controller's headphone jack volume on hardware level, 0-100
+        /// </summary>
+        /// <returns></returns>
+        public void SetHeadsetVolume(int Volume)
+        {
+            if (Volume != 0)
+                Volume = Volume + 40;
+
+            if (Volume >= 0 && Volume <= 240)
+                HeadsetVolume = Convert.ToByte(int.Parse(Convert.ToString(Volume)).ToString("X"), 16);
+            else
+                throw new ArgumentException("The speaker volume cannot be lower than 0 or higher than 100.");
         }
 
         /// <summary>
@@ -444,6 +515,7 @@ namespace Wujek_Dualsense_API
             {
                 byte[] ButtonStates = new byte[reportLength];
                 DSDevice.Read(ButtonStates);
+
                 if (this.ConnectionType == ConnectionType.BT) { offset = 1; }
 
                 // ButtonButtonStates 0 is always 1
@@ -505,24 +577,16 @@ namespace Wujek_Dualsense_API
             }
             catch (Exception e)
             {
-                Working = false;
                 if (e.Message.Contains("Operation failed after some time"))
                 {
-                    Connection.OnControllerDisconnect(ControllerNumber);
-                }
-                else
-                {
-                    Connection.OnControllerDisconnect(ControllerNumber);
-                    //MessageBox.Show(e.Message + e.Source + e.StackTrace);
-                    //Console.WriteLine(e.Message + e.Source + e.StackTrace);
+                    if (Working)
+                    {
+                        Working = false;
+                        Connection.OnControllerDisconnect(ControllerNumber);
+                        LookForController();
+                    }
                 }
             }
-        }
-
-        private void Connection_ControllerDisconnected(object? sender, ConnectionStatus.Controller e)
-        {
-            e.ControllerNumber = ControllerNumber;
-            Dispose();
         }
 
         private void Write()
@@ -536,10 +600,10 @@ namespace Wujek_Dualsense_API
                 outReport[2] = (byte)featureType;
                 outReport[3] = (byte)RightRotor; // right low freq motor 0-255
                 outReport[4] = (byte)LeftRotor; // left low freq motor 0-255
-                outReport[5] = 0x7C; // <-- headset volume
+                outReport[5] = (byte)HeadsetVolume; // <-- headset volume
                 outReport[6] = (byte)SpeakerVolume; // <-- speaker volume
                 outReport[7] = (byte)MicrophoneVolume; // <-- mic volume
-                outReport[8] = (byte)_audioOutput; // <-- audio output
+                outReport[8] = 0x7C; // <-- no idea what that does
                 outReport[9] = (byte)micLed; //microphone led
                 outReport[10] = (byte)microphoneStatus;
                 outReport[11] = (byte)RightTriggerMode;
@@ -558,10 +622,9 @@ namespace Wujek_Dualsense_API
                 outReport[27] = (byte)LeftTriggerForces[4];
                 outReport[28] = (byte)LeftTriggerForces[5];
                 outReport[31] = (byte)LeftTriggerForces[6];
-                outReport[39] = (byte)Brightness.high;
-                outReport[41] = (byte)Brightness.high;
-                outReport[42] = (byte)micLedPulse;
-                outReport[43] = (byte)Brightness.high;
+                outReport[39] = (byte)0x1;
+                outReport[41] = (byte)0x0;
+                outReport[42] = (byte)ledBrightness;
                 outReport[44] = (byte)_playerLED;
                 outReport[45] = (byte)lightbar.R;
                 outReport[46] = (byte)lightbar.G;
@@ -574,7 +637,7 @@ namespace Wujek_Dualsense_API
                 outReport[2] = (byte)rumbleMode;
                 if (bt_initialized == false)
                 {
-                    outReport[3] = 0x1 | 0x2 | 0x4 | 0x8 | 0x10 | 0x40;
+                    outReport[3] = 95;
                     bt_initialized = true;
                 }
                 else if (bt_initialized == true)
@@ -601,10 +664,9 @@ namespace Wujek_Dualsense_API
                 outReport[28] = (byte)LeftTriggerForces[4];
                 outReport[29] = (byte)LeftTriggerForces[5];
                 outReport[32] = (byte)LeftTriggerForces[6];
-                outReport[40] = (byte)Brightness.high;
-                outReport[43] = (byte)Brightness.high;
-                outReport[44] = (byte)micLedPulse;
-                outReport[45] = (byte)Brightness.high;
+                outReport[40] = (byte)0x0;
+                outReport[42] = (byte)0x1;
+                outReport[44] = (byte)ledBrightness;
                 outReport[45] = (byte)_playerLED;
                 outReport[46] = (byte)lightbar.R;
                 outReport[47] = (byte)lightbar.G;
@@ -666,14 +728,16 @@ namespace Wujek_Dualsense_API
         /// <returns></returns>
         public void Dispose()
         {
-            Working = false;
-            ResetSettings();
-            Write();
-            if (this.ConnectionType == ConnectionType.USB && hapticFeedback != null)
-            {
-                hapticFeedback.Dispose();
+            if (DSDevice != null) {
+                Working = false;
+                ResetSettings();
+                Write();
+                if (this.ConnectionType == ConnectionType.USB && hapticFeedback != null)
+                {
+                    hapticFeedback.Dispose();
+                }
+                DSDevice.Dispose();
             }
-            DSDevice.Dispose();
         }
     }
 
