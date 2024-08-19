@@ -33,7 +33,6 @@ namespace Wujek_Dualsense_API
         private int[] RightTriggerForces = new int[7];
         private int[] LeftTriggerForces = new int[7];
         private Vibrations.VibrationType rumbleMode = Vibrations.VibrationType.Haptic_Feedback;
-        private AudioOutput _audioOutput = AudioOutput.SPEAKER;
         private HapticFeedback hapticFeedback;
         private Dictionary<string, byte[]> WAV_CACHE = new Dictionary<string, byte[]>();
         private bool bt_initialized = false;
@@ -174,17 +173,11 @@ namespace Wujek_Dualsense_API
 
             if (this.ConnectionType == ConnectionType.USB)
             {
-                SetAudioOutput(AudioOutput.SPEAKER);
                 TurnMicrophoneOn();
                 SetMicrophoneVolume(35);
                 SetHeadsetVolume(100);
                 SetSpeakerVolume(100);
             }
-        }
-
-        public void SetAudioOutput(AudioOutput audioOutput)
-        {
-            _audioOutput = audioOutput;
         }
 
         public void StartSystemAudioToHaptics()
@@ -610,7 +603,7 @@ namespace Wujek_Dualsense_API
                 outReport[5] = (byte)HeadsetVolume; // <-- headset volume
                 outReport[6] = (byte)SpeakerVolume; // <-- speaker volume
                 outReport[7] = (byte)MicrophoneVolume; // <-- mic volume
-                outReport[8] = (byte)_audioOutput; // <-- audio output
+                outReport[8] = 0x7C; // <-- no idea what that does
                 outReport[9] = (byte)micLed; //microphone led
                 outReport[10] = (byte)microphoneStatus;
                 outReport[11] = (byte)RightTriggerMode;
