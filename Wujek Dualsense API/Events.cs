@@ -20,14 +20,5 @@
                 this.ControllerDisconnected(this, new Controller(ControllerNumber));
             }
         }
-
-        public event EventHandler<Controller> ControllerConnected;
-        public void OnControllerConnect(int ControllerNumber)
-        {
-            if (this.ControllerConnected != null)
-            {
-                this.ControllerConnected(this, new Controller(ControllerNumber));
-            }
-        }
     }
 }

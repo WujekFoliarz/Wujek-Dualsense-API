@@ -31,9 +31,9 @@
         [Flags]
         public enum Brightness
         {
-            HIGH = 0x0,
-            MEDIUM = 0x1,
-            LOW = 0x2
+            high = 0x0,
+            medium = 0x1,
+            low = 0x2
         }
 
         [Flags]

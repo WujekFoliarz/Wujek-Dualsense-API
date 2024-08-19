@@ -99,14 +99,7 @@ namespace Wujek_Dualsense_API
         {
             if (SystemAudioPlayback)
             {
-                try
-                {
-                    bufferedWaveProvider.AddSamples(e.Buffer, 0, e.BytesRecorded);
-                }
-                catch (InvalidOperationException)
-                {
-                    bufferedWaveProvider.ClearBuffer();
-                }
+                bufferedWaveProvider.AddSamples(e.Buffer, 0, e.BytesRecorded);
             }
         }
 
