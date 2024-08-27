@@ -128,8 +128,8 @@ namespace Wujek_Dualsense_API
 
             if (this.ConnectionType == ConnectionType.USB)
             {
-                SetAudioOutput(AudioOutput.SPEAKER);
                 TurnMicrophoneOn();
+                SetAudioOutput(AudioOutput.SPEAKER);
                 SetMicrophoneVolume(35);
             }
         }
@@ -141,7 +141,6 @@ namespace Wujek_Dualsense_API
 
         public void StartSystemAudioToHaptics()
         {
-            hapticFeedback.setNewPlayback();
             hapticFeedback.SystemAudioPlayback = true;
         }
 

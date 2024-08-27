@@ -11,6 +11,7 @@ namespace Wujek_Dualsense_API
         private WasapiOut hapticStream;
         private WasapiLoopbackCapture wasapiLoopbackCapture = null;
         private MMDeviceEnumerator mmdeviceEnumerator = new MMDeviceEnumerator();
+        private bool StartNewPlayback = true;
         public BufferedWaveProvider bufferedWaveProvider = new BufferedWaveProvider(WaveFormat.CreateCustomFormat(WaveFormatEncoding.IeeeFloat, 48000, 2, 32, 8, 8));
         public float speakerPlaybackVolume = 1;
         public float leftActuatorVolume = 1;
@@ -75,26 +76,37 @@ namespace Wujek_Dualsense_API
             multiplexingWaveProvider.ConnectInputToOutput(0, 0);
             multiplexingWaveProvider.ConnectInputToOutput(0, 1);
             multiplexingWaveProvider.ConnectInputToOutput(0, 2);
-            multiplexingWaveProvider.ConnectInputToOutput(0, 3);
+            multiplexingWaveProvider.ConnectInputToOutput(1, 3);
 
             hapticStream.Init(multiplexingWaveProvider);
             Thread t = new Thread(new ThreadStart(Play));
+            t.IsBackground = true;
             t.Start();
+            setNewPlayback();
         }
 
         public void setNewPlayback()
         {
             if (wasapiLoopbackCapture != null)
             {
+                wasapiLoopbackCapture.StopRecording();
                 wasapiLoopbackCapture.Dispose();
             }
 
             mmdeviceplayback = mmdeviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
             wasapiLoopbackCapture = new WasapiLoopbackCapture(mmdeviceplayback);
-            wasapiLoopbackCapture.StartRecording();
+            wasapiLoopbackCapture.RecordingStopped += WasapiLoopbackCapture_RecordingStopped;
             wasapiLoopbackCapture.DataAvailable += WasapiLoopbackCapture_DataAvailable;
+            wasapiLoopbackCapture.StartRecording();
         }
 
+        private void WasapiLoopbackCapture_RecordingStopped(object? sender, StoppedEventArgs e)
+        {
+            if(StartNewPlayback)
+            {
+                setNewPlayback();
+            }
+        }
 
         private void WasapiLoopbackCapture_DataAvailable(object? sender, WaveInEventArgs e)
         {
@@ -133,10 +145,12 @@ namespace Wujek_Dualsense_API
 
         public void Dispose()
         {
+            StartNewPlayback = false;
+
             if (hapticStream != null)
             {
-                bufferedWaveProvider.ClearBuffer();
                 hapticStream.Dispose();
+                bufferedWaveProvider.ClearBuffer();
             }
 
             if (wasapiLoopbackCapture != null)

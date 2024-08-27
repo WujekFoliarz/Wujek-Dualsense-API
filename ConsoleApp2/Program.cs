@@ -5,8 +5,13 @@ dualsense.Start();
 dualsense.Connection.ControllerDisconnected += Connection_ControllerDisconnected;
 dualsense.SetMicrophoneLED(LED.MicrophoneLED.PULSE);
 dualsense.SetLightbar(255, 255, 255);
-dualsense.SetSpeakerVolumeInSoftware(0, 1, 1);
-dualsense.SetAudioOutput(AudioOutput.HEADSET);
+dualsense.StartSystemAudioToHaptics();
+dualsense.SetAudioOutput(AudioOutput.SPEAKER);
+dualsense.TurnMicrophoneOn();
+
+Console.ReadLine();
+dualsense.StopSystemAudioToHaptics();
+Console.ReadLine();
 dualsense.StartSystemAudioToHaptics();
 
 void Connection_ControllerDisconnected(object? sender, ConnectionStatus.Controller e)
