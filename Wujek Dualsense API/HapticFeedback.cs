@@ -29,6 +29,10 @@ namespace Wujek_Dualsense_API
         
         private void Initalize(string AudioDeviceID, float speaker, float leftactuator, float rightactuator)
         {
+            speakerPlaybackVolume = speaker;
+            leftActuatorVolume = leftactuator;
+            rightActuatorVolume = rightactuator;
+
             foreach (MMDevice mmdevice in mmdeviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
             {
                 mmdevice.GetPropertyInformation(NAudio.CoreAudioApi.Interfaces.StorageAccessMode.Read);
