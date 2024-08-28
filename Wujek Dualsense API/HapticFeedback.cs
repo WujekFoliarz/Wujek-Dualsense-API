@@ -32,6 +32,7 @@ namespace Wujek_Dualsense_API
             speakerPlaybackVolume = speaker;
             leftActuatorVolume = leftactuator;
             rightActuatorVolume = rightactuator;
+            setVolume(speakerPlaybackVolume, leftActuatorVolume, rightActuatorVolume);
 
             foreach (MMDevice mmdevice in mmdeviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
             {
