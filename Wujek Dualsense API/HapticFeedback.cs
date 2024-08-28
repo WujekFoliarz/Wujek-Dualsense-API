@@ -26,7 +26,7 @@ namespace Wujek_Dualsense_API
         {
             Initalize(AudioDeviceID);
         }
-
+        
         private void Initalize(string AudioDeviceID)
         {
             foreach (MMDevice mmdevice in mmdeviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
