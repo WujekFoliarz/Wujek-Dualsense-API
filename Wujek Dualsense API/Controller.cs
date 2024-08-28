@@ -84,8 +84,13 @@ namespace Wujek_Dualsense_API
                 AudioDeviceID = PnPDevice.GetDeviceByInterfaceId(devices[ControllerNumber].DevicePath).Parent.DeviceId.ToString();
                 SetSpeakerVolume(100);
                 SetMicrophoneVolume(35);
-                hapticFeedback = new HapticFeedback(ControllerNumber, AudioDeviceID);
+                hapticFeedback = new HapticFeedback(AudioDeviceID);
             }
+        }
+
+        public void ReinitializeHapticFeedback()
+        {
+            hapticFeedback.ReinitializeHapticFeedback();
         }
 
         public void Start()
@@ -133,17 +138,6 @@ namespace Wujek_Dualsense_API
             }
         }
 
-        /// <summary>
-        /// Changes audio passthrough capture device to current default output device
-        /// </summary>
-        /// <returns></returns>
-        public void SetNewPlaybackDevice()
-        {
-            if (this.ConnectionType == ConnectionType.USB && hapticFeedback != null)
-            {
-                hapticFeedback.setNewPlayback();
-            }
-        }
 
         /// <summary>
         /// Sets audio output on your controller

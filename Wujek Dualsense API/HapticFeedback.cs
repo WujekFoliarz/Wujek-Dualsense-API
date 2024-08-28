@@ -9,10 +9,9 @@ namespace Wujek_Dualsense_API
         private MMDevice device;
         private MMDevice mmdeviceplayback;
         private WasapiOut hapticStream;
-        private WasapiOut audioPasstroughStream;
+        private WasapiOut audioPassthroughStream;
         private WasapiLoopbackCapture wasapiLoopbackCapture = null;
         private MMDeviceEnumerator mmdeviceEnumerator = new MMDeviceEnumerator();
-        private Thread AudioPassthroughPlayThread;
         private bool StartNewPlayback = true;
         public BufferedWaveProvider bufferedWaveProvider = new BufferedWaveProvider(WaveFormat.CreateCustomFormat(WaveFormatEncoding.IeeeFloat, 48000, 2, 32, 8, 8));
         public BufferedWaveProvider audioPassthroughBuffer;
@@ -20,9 +19,15 @@ namespace Wujek_Dualsense_API
         public float leftActuatorVolume = 1;
         public float rightActuatorVolume = 1;
         public bool SystemAudioPlayback = false;
+        private string audioID = string.Empty;
 
 
-        public HapticFeedback(int ControllerNumber, string AudioDeviceID)
+        public HapticFeedback(string AudioDeviceID)
+        {
+            Initalize(AudioDeviceID);
+        }
+
+        private void Initalize(string AudioDeviceID)
         {
             foreach (MMDevice mmdevice in mmdeviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
             {
@@ -39,6 +44,7 @@ namespace Wujek_Dualsense_API
                         if (instancePath.ToLower().Substring(0, AudioDeviceID.Length - 4).Replace("mi_00", "") == AudioDeviceID.ToLower().Substring(0, AudioDeviceID.Length - 4).Replace("mi_03", ""))
                         {
                             device = mmdevice;
+                            audioID = AudioDeviceID;
                             break;
                         }
                     }
@@ -57,6 +63,7 @@ namespace Wujek_Dualsense_API
                     if (mmdevice.FriendlyName.Contains("Wireless Controller"))
                     {
                         device = mmdevice;
+                        audioID = AudioDeviceID;
                         break;
                     }
                 }
@@ -72,8 +79,6 @@ namespace Wujek_Dualsense_API
             bufferedWaveProvider.DiscardOnBufferOverflow = true;
             hapticStream = new WasapiOut(device, AudioClientShareMode.Shared, true, 10);
 
-            setNewPlayback();
-
             MultiplexingWaveProvider multiplexingWaveProvider = new MultiplexingWaveProvider(new BufferedWaveProvider[] {
                 bufferedWaveProvider,
             }, 4);
@@ -83,43 +88,9 @@ namespace Wujek_Dualsense_API
             multiplexingWaveProvider.ConnectInputToOutput(0, 2);
             multiplexingWaveProvider.ConnectInputToOutput(1, 3);
 
-            hapticStream.Init(multiplexingWaveProvider);
-            Thread t = new Thread(new ThreadStart(Play));
-            t.IsBackground = true;
-            t.Start();
-        }
 
-        public void setNewPlayback()
-        {
-            if (wasapiLoopbackCapture != null)
-            {
-                StartNewPlayback = false;
-                wasapiLoopbackCapture.StopRecording();
-                wasapiLoopbackCapture.Dispose();
-            }
-
-            if (audioPassthroughBuffer != null)
-            {
-                audioPassthroughBuffer.ClearBuffer();               
-            }
-
-            if(audioPasstroughStream != null)
-            {
-                audioPasstroughStream.Stop();
-            }
-            
-            if(mmdeviceplayback != null)
-            {
-                mmdeviceplayback.Dispose();
-            }
-
-            mmdeviceplayback = mmdeviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
-            wasapiLoopbackCapture = new WasapiLoopbackCapture(mmdeviceplayback);
-            wasapiLoopbackCapture.RecordingStopped += WasapiLoopbackCapture_RecordingStopped;
-            wasapiLoopbackCapture.DataAvailable += WasapiLoopbackCapture_DataAvailable;
-            wasapiLoopbackCapture.StartRecording();
-
-            audioPasstroughStream = new WasapiOut(device, AudioClientShareMode.Shared, true, 10);
+            setNewPlayback();
+            audioPassthroughStream = new WasapiOut(device, AudioClientShareMode.Shared, true, 10);
             audioPassthroughBuffer = new BufferedWaveProvider(WaveFormat.CreateCustomFormat(WaveFormatEncoding.IeeeFloat, 48000, wasapiLoopbackCapture.WaveFormat.Channels, 32, 8, 8));
             audioPassthroughBuffer.BufferLength = 5000000; // 5MB buffer
             audioPassthroughBuffer.ReadFully = true;
@@ -134,11 +105,36 @@ namespace Wujek_Dualsense_API
             multiplexingWaveProviderAP.ConnectInputToOutput(0, 2);
             multiplexingWaveProviderAP.ConnectInputToOutput(1, 3);
 
-            audioPasstroughStream.Init(multiplexingWaveProviderAP);
-            AudioPassthroughPlayThread = new Thread(() => PlayAudioPassthrough());
+            hapticStream.Init(multiplexingWaveProvider);
+            Thread t = new Thread(new ThreadStart(Play));
+            t.IsBackground = true;
+            t.Start();
+            
+            audioPassthroughStream.Init(multiplexingWaveProviderAP);
+            Thread AudioPassthroughPlayThread = new Thread(() => PlayAudioPassthrough());
             AudioPassthroughPlayThread.IsBackground = true;
             AudioPassthroughPlayThread.Start();
-            StartNewPlayback = true;
+        }
+
+        public void setNewPlayback()
+        {
+            if (wasapiLoopbackCapture != null)
+            {
+                wasapiLoopbackCapture.StopRecording();
+                wasapiLoopbackCapture.Dispose();
+            }
+
+            mmdeviceplayback = mmdeviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            wasapiLoopbackCapture = new WasapiLoopbackCapture(mmdeviceplayback);
+            wasapiLoopbackCapture.RecordingStopped += WasapiLoopbackCapture_RecordingStopped;
+            wasapiLoopbackCapture.DataAvailable += WasapiLoopbackCapture_DataAvailable;
+            wasapiLoopbackCapture.StartRecording();
+        }
+
+        public void ReinitializeHapticFeedback()
+        {
+            Dispose();
+            Initalize(audioID);
         }
 
         private void WasapiLoopbackCapture_RecordingStopped(object? sender, StoppedEventArgs e)
@@ -164,7 +160,7 @@ namespace Wujek_Dualsense_API
 
         private void PlayAudioPassthrough()
         {
-            audioPasstroughStream.Play();
+            audioPassthroughStream.Play();
         }
 
         public void setVolume(float speaker, float left, float right)
@@ -185,12 +181,12 @@ namespace Wujek_Dualsense_API
                         hapticStream.AudioStreamVolume.SetChannelVolume(3, rightActuatorVolume);
                     }
 
-                    if (audioPasstroughStream != null)
+                    if (audioPassthroughStream != null)
                     {
-                        audioPasstroughStream.AudioStreamVolume.SetChannelVolume(0, speakerPlaybackVolume);
-                        audioPasstroughStream.AudioStreamVolume.SetChannelVolume(1, speakerPlaybackVolume);
-                        audioPasstroughStream.AudioStreamVolume.SetChannelVolume(2, leftActuatorVolume);
-                        audioPasstroughStream.AudioStreamVolume.SetChannelVolume(3, rightActuatorVolume);
+                        audioPassthroughStream.AudioStreamVolume.SetChannelVolume(0, speakerPlaybackVolume);
+                        audioPassthroughStream.AudioStreamVolume.SetChannelVolume(1, speakerPlaybackVolume);
+                        audioPassthroughStream.AudioStreamVolume.SetChannelVolume(2, leftActuatorVolume);
+                        audioPassthroughStream.AudioStreamVolume.SetChannelVolume(3, rightActuatorVolume);
                     }
                 }
                 catch (ArgumentOutOfRangeException)
@@ -202,21 +198,22 @@ namespace Wujek_Dualsense_API
 
         public void Dispose()
         {
+            StartNewPlayback = false;
+
             if (hapticStream != null)
             {
-                bufferedWaveProvider.ClearBuffer();
                 hapticStream.Dispose();
+                bufferedWaveProvider.ClearBuffer();
             }
 
-            if (audioPasstroughStream != null)
+            if(audioPassthroughStream != null)
             {
+                audioPassthroughStream.Dispose();
                 audioPassthroughBuffer.ClearBuffer();
-                audioPasstroughStream.Dispose();
             }
 
             if (wasapiLoopbackCapture != null)
             {
-                StartNewPlayback = false;
                 wasapiLoopbackCapture.Dispose();
             }
         }

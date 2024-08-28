@@ -9,12 +9,8 @@ dualsense.StartSystemAudioToHaptics();
 dualsense.SetAudioOutput(AudioOutput.SPEAKER);
 dualsense.TurnMicrophoneOn();
 
-while (true)
-{
-    dualsense.SetNewPlaybackDevice();
-    dualsense.SetSpeakerVolumeInSoftware(0, 1, 1);
-    Console.ReadLine();
-}
+Console.ReadLine();
+dualsense.ReinitializeHapticFeedback();
 
 void Connection_ControllerDisconnected(object? sender, ConnectionStatus.Controller e)
 {
