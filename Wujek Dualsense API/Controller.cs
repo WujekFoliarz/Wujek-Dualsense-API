@@ -84,7 +84,7 @@ namespace Wujek_Dualsense_API
                 AudioDeviceID = PnPDevice.GetDeviceByInterfaceId(devices[ControllerNumber].DevicePath).Parent.DeviceId.ToString();
                 SetSpeakerVolume(100);
                 SetMicrophoneVolume(35);
-                hapticFeedback = new HapticFeedback(AudioDeviceID);
+                hapticFeedback = new HapticFeedback(AudioDeviceID, 1,1,1);
             }
         }
 

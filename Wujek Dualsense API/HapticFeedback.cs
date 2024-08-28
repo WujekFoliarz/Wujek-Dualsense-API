@@ -22,12 +22,12 @@ namespace Wujek_Dualsense_API
         private string audioID = string.Empty;
 
 
-        public HapticFeedback(string AudioDeviceID)
+        public HapticFeedback(string AudioDeviceID, float speaker, float leftactuator, float rightactuator)
         {
-            Initalize(AudioDeviceID);
+            Initalize(AudioDeviceID, speaker, leftactuator, rightactuator);
         }
         
-        private void Initalize(string AudioDeviceID)
+        private void Initalize(string AudioDeviceID, float speaker, float leftactuator, float rightactuator)
         {
             foreach (MMDevice mmdevice in mmdeviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
             {
@@ -134,7 +134,7 @@ namespace Wujek_Dualsense_API
         public void ReinitializeHapticFeedback()
         {
             Dispose();
-            Initalize(audioID);
+            Initalize(audioID, speakerPlaybackVolume, leftActuatorVolume, rightActuatorVolume);
         }
 
         private void WasapiLoopbackCapture_RecordingStopped(object? sender, StoppedEventArgs e)
