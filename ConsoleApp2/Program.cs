@@ -9,16 +9,17 @@ dualsense.StartSystemAudioToHaptics();
 dualsense.SetAudioOutput(AudioOutput.SPEAKER);
 dualsense.TurnMicrophoneOn();
 
-Console.ReadLine();
-dualsense.StopSystemAudioToHaptics();
-Console.ReadLine();
-dualsense.StartSystemAudioToHaptics();
+while (true)
+{
+    dualsense.SetNewPlaybackDevice();
+    Console.ReadLine();
+}
 
 void Connection_ControllerDisconnected(object? sender, ConnectionStatus.Controller e)
 {
     Console.WriteLine("Controller number " + e.ControllerNumber + " was disconnected!");
 }
 
-Console.WriteLine("Press enter to exit");
 Console.ReadLine();
+Console.WriteLine("Press enter to exit");
 dualsense.Dispose();

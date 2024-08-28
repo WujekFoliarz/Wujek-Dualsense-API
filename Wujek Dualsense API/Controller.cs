@@ -1,7 +1,6 @@
 ﻿using HidSharp;
 using Nefarius.Utilities.DeviceManagement.PnP;
 using System.Windows.Forms;
-using Windows.Media.Core;
 using static Wujek_Dualsense_API.LED;
 using static Wujek_Dualsense_API.Motion;
 
@@ -134,26 +133,59 @@ namespace Wujek_Dualsense_API
             }
         }
 
+        /// <summary>
+        /// Changes audio passthrough capture device to current default output device
+        /// </summary>
+        /// <returns></returns>
+        public void SetNewPlaybackDevice()
+        {
+            if (this.ConnectionType == ConnectionType.USB && hapticFeedback != null)
+            {
+                hapticFeedback.setNewPlayback();
+            }
+        }
+
+        /// <summary>
+        /// Sets audio output on your controller
+        /// </summary>
+        /// <returns></returns>
         public void SetAudioOutput(AudioOutput audioOutput)
         {
             _audioOutput = audioOutput;
         }
 
+        /// <summary>
+        /// Starts capturing system audio and playing it through your controller
+        /// </summary>
+        /// <returns></returns>
         public void StartSystemAudioToHaptics()
         {
             hapticFeedback.SystemAudioPlayback = true;
         }
 
+        /// <summary>
+        /// Stops capturing system audio
+        /// </summary>
+        /// <returns></returns>
         public void StopSystemAudioToHaptics()
         {
             hapticFeedback.SystemAudioPlayback = false;
         }
 
-        public void PlayHaptics(string PathToWAV, float FileVolumeSpeaker, float fileVolumeLeftActuator, float FileVolumeRightActuator, bool ClearBuffer)
+        /// <summary>
+        /// Plays local WAV file on your controller
+        /// </summary>
+        /// <param name="PathToWAV">Path to WAV file located on user's computer</param>
+        /// <param name="FileVolumeSpeaker">Sets volume of the speaker</param>
+        /// <param name="fileVolumeLeftActuator">Sets vibration force of the left side</param>
+        /// <param name="fileVolumeRightActuator">Sets vibration force of the right side</param>
+        /// <param name="ClearBuffer">When set to true, all previous sounds are cancelled in favour of the current one</param>
+        /// <returns></returns>
+        public void PlayHaptics(string PathToWAV, float FileVolumeSpeaker, float fileVolumeLeftActuator, float fileVolumeRightActuator, bool ClearBuffer)
         {
             if (this.ConnectionType == ConnectionType.USB && rumbleMode == Vibrations.VibrationType.Haptic_Feedback)
             {
-                hapticFeedback.setVolume(FileVolumeSpeaker, fileVolumeLeftActuator, FileVolumeRightActuator);
+                hapticFeedback.setVolume(FileVolumeSpeaker, fileVolumeLeftActuator, fileVolumeRightActuator);
 
                 if (!WAV_CACHE.Keys.Contains(PathToWAV))
                 {
