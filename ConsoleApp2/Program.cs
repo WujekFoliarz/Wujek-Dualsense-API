@@ -8,7 +8,7 @@ dualsense.SetLightbar(255, 255, 255);
 dualsense.StartSystemAudioToHaptics();
 dualsense.SetAudioOutput(AudioOutput.SPEAKER);
 dualsense.TurnMicrophoneOn();
-
+dualsense.SetSpeakerVolumeInSoftware(0.1f, 1, 1);
 Console.ReadLine();
 dualsense.ReinitializeHapticFeedback();
 
