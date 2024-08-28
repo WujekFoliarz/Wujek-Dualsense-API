@@ -177,10 +177,21 @@ namespace Wujek_Dualsense_API
 
                 try
                 {
-                    hapticStream.AudioStreamVolume.SetChannelVolume(0, speakerPlaybackVolume);
-                    hapticStream.AudioStreamVolume.SetChannelVolume(1, speakerPlaybackVolume);
-                    hapticStream.AudioStreamVolume.SetChannelVolume(2, leftActuatorVolume);
-                    hapticStream.AudioStreamVolume.SetChannelVolume(3, rightActuatorVolume);
+                    if (hapticStream != null)
+                    {
+                        hapticStream.AudioStreamVolume.SetChannelVolume(0, speakerPlaybackVolume);
+                        hapticStream.AudioStreamVolume.SetChannelVolume(1, speakerPlaybackVolume);
+                        hapticStream.AudioStreamVolume.SetChannelVolume(2, leftActuatorVolume);
+                        hapticStream.AudioStreamVolume.SetChannelVolume(3, rightActuatorVolume);
+                    }
+
+                    if (audioPasstroughStream != null)
+                    {
+                        audioPasstroughStream.AudioStreamVolume.SetChannelVolume(0, speakerPlaybackVolume);
+                        audioPasstroughStream.AudioStreamVolume.SetChannelVolume(1, speakerPlaybackVolume);
+                        audioPasstroughStream.AudioStreamVolume.SetChannelVolume(2, leftActuatorVolume);
+                        audioPasstroughStream.AudioStreamVolume.SetChannelVolume(3, rightActuatorVolume);
+                    }
                 }
                 catch (ArgumentOutOfRangeException)
                 {

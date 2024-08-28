@@ -12,6 +12,7 @@ dualsense.TurnMicrophoneOn();
 while (true)
 {
     dualsense.SetNewPlaybackDevice();
+    dualsense.SetSpeakerVolumeInSoftware(0, 1, 1);
     Console.ReadLine();
 }
 
