@@ -1,5 +1,10 @@
 ﻿using HidSharp;
 using Nefarius.Utilities.DeviceManagement.PnP;
+using System;
+using System.IO;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using static Wujek_Dualsense_API.LED;
 using static Wujek_Dualsense_API.Motion;
@@ -19,7 +24,7 @@ namespace Wujek_Dualsense_API
         public string DeviceID { get; private set; } = string.Empty;
 
         private Task transitionTask;
-        private CancellationTokenSource cts = new();
+        private CancellationTokenSource cts = new CancellationTokenSource();
         private byte SpeakerVolume;
         private byte MicrophoneVolume;
         private MicrophoneLED micLed = MicrophoneLED.OFF;
@@ -90,7 +95,10 @@ namespace Wujek_Dualsense_API
 
         public void ReinitializeHapticFeedback()
         {
-            hapticFeedback.ReinitializeHapticFeedback();
+            if(this.ConnectionType == ConnectionType.USB && hapticFeedback != null)
+            {
+                hapticFeedback.ReinitializeHapticFeedback();
+            }
         }
 
         public void Start()
@@ -154,7 +162,10 @@ namespace Wujek_Dualsense_API
         /// <returns></returns>
         public void StartSystemAudioToHaptics()
         {
-            hapticFeedback.SystemAudioPlayback = true;
+            if(this.ConnectionType == ConnectionType.USB && hapticFeedback != null)
+            {
+                hapticFeedback.SystemAudioPlayback = true;
+            }
         }
 
         /// <summary>
@@ -163,7 +174,10 @@ namespace Wujek_Dualsense_API
         /// <returns></returns>
         public void StopSystemAudioToHaptics()
         {
-            hapticFeedback.SystemAudioPlayback = false;
+            if (this.ConnectionType == ConnectionType.USB && hapticFeedback != null)
+            {
+                hapticFeedback.SystemAudioPlayback = false;
+            }
         }
 
         /// <summary>
@@ -181,7 +195,7 @@ namespace Wujek_Dualsense_API
             {
                 hapticFeedback.setVolume(FileVolumeSpeaker, fileVolumeLeftActuator, fileVolumeRightActuator);
 
-                if (!WAV_CACHE.Keys.Contains(PathToWAV))
+                if (!WAV_CACHE.ContainsKey(PathToWAV))
                 {
                     byte[] file = File.ReadAllBytes(PathToWAV);
                     try
@@ -405,10 +419,11 @@ namespace Wujek_Dualsense_API
             if (transitionTask != null && transitionTask.IsCompleted)
             {
                 cts.Dispose();
-                cts = new();
-            }
+                cts = new CancellationTokenSource();
 
-            transitionTask = new Task(() => transitionLightBar(R, G, B, transitionSteps, transitionDelay, cts.Token));
+    }
+
+    transitionTask = new Task(() => transitionLightBar(R, G, B, transitionSteps, transitionDelay, cts.Token));
             transitionTask.Start();
         }
 
@@ -509,14 +524,14 @@ namespace Wujek_Dualsense_API
                 // trackpad touch
                 ButtonState.trackPadTouch0.ID = (byte)(ButtonStates[33 + offset] & 0x7F);
                 ButtonState.trackPadTouch0.IsActive = (ButtonStates[33 + offset] & 0x80) == 0;
-                ButtonState.trackPadTouch0.X = ((ButtonStates[35 + offset] & 0x0F) << 8) | ButtonStates[34];
-                ButtonState.trackPadTouch0.Y = ((ButtonStates[36 + offset]) << 4) | ((ButtonStates[35] & 0xF0) >> 4);
+                ButtonState.trackPadTouch0.X = ((ButtonStates[35 + offset] & 0x0F) << 8) | ButtonStates[34 + offset];
+                ButtonState.trackPadTouch0.Y = ((ButtonStates[36 + offset]) << 4) | ((ButtonStates[35 + offset] & 0xF0) >> 4);
 
                 // trackpad touch
                 ButtonState.trackPadTouch1.ID = (byte)(ButtonStates[37 + offset] & 0x7F);
                 ButtonState.trackPadTouch1.IsActive = (ButtonStates[37 + offset] & 0x80) == 0;
-                ButtonState.trackPadTouch1.X = ((ButtonStates[39 + offset] & 0x0F) << 8) | ButtonStates[38];
-                ButtonState.trackPadTouch1.Y = ((ButtonStates[40 + offset]) << 4) | ((ButtonStates[39] & 0xF0) >> 4);
+                ButtonState.trackPadTouch1.X = ((ButtonStates[39 + offset] & 0x0F) << 8) | ButtonStates[38 + offset];
+                ButtonState.trackPadTouch1.Y = ((ButtonStates[40 + offset]) << 4) | ((ButtonStates[39 + offset] & 0xF0) >> 4);
 
                 // accelerometer
                 ButtonState.accelerometer.X = BitConverter.ToInt16(new byte[] { ButtonStates[16 + offset], ButtonStates[17 + offset] }, 0);

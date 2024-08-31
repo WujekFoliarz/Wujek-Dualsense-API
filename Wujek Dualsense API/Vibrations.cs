@@ -1,4 +1,5 @@
-﻿namespace Wujek_Dualsense_API
+﻿using System;
+namespace Wujek_Dualsense_API
 {
     public class Vibrations
     {

@@ -3,14 +3,13 @@
   <PropertyGroup>
 	  <TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
 	  <RootNamespace>Wujek_Dualsense_API</RootNamespace>
-	  <ImplicitUsings>enable</ImplicitUsings>
 	  <Nullable>enable</Nullable>
-	  <PlatformTarget>AnyCPU</PlatformTarget>
+	  <PlatformTarget>x64</PlatformTarget>
 	  <OutputType>Library</OutputType>
 	  <Company></Company>
 	  <PackageId>Wujek_Dualsense_API</PackageId>
 	  <Title>Wujek Dualsense API</Title>
-	  <Version>1.4.2</Version>
+	  <Version>1.4.3</Version>
 	  <Authors>Wujek_Foliarz</Authors>
 	  <Product>Wujek Dualsense API</Product>
 	  <Description>Wujek Dualsense API is a .NET library designed to interface with the PlayStation DualSense controller, providing functionalities to control its various features such as haptic feedback, LEDs, triggers, and more.</Description>
@@ -18,8 +17,8 @@
 	  <PackageTags>DualSense, dualsense, PS5 Controller, controller, adaptive triggers, led, haptic feedback, haptic</PackageTags>
 	  <NeutralLanguage>en</NeutralLanguage>
 	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	  <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
 	  <Platforms>AnyCPU;x64</Platforms>
+	  <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
   </PropertyGroup>
 
   <ItemGroup>

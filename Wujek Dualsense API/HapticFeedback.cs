@@ -1,6 +1,8 @@
 ﻿using NAudio.CoreAudioApi;
 using NAudio.Wave;
+using System;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace Wujek_Dualsense_API
 {

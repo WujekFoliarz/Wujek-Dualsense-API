@@ -1,4 +1,6 @@
-﻿namespace Wujek_Dualsense_API
+﻿using System;
+
+namespace Wujek_Dualsense_API
 {
     [Flags]
     public enum ConnectionType
