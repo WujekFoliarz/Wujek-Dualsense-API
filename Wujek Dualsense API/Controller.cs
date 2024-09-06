@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using static Wujek_Dualsense_API.LED;
 using static Wujek_Dualsense_API.Motion;
+using static Wujek_Dualsense_API.BatteryState;
+using Windows.Devices.Power;
+using Windows.System.Power;
 
 namespace Wujek_Dualsense_API
 {
@@ -42,6 +45,7 @@ namespace Wujek_Dualsense_API
         private Dictionary<string, byte[]> WAV_CACHE = new Dictionary<string, byte[]>();
         private bool bt_initialized = false;
         private FeatureType featureType = FeatureType.FULL;
+        public BatteryState.Battery Battery = new BatteryState.Battery();
 
         public State ButtonState = new State();
         public byte LeftRotor = 0;
@@ -542,6 +546,10 @@ namespace Wujek_Dualsense_API
                 ButtonState.gyro.Pitch = BitConverter.ToInt16(new byte[] { ButtonStates[22 + offset], ButtonStates[23 + offset] }, 0);
                 ButtonState.gyro.Yaw = BitConverter.ToInt16(new byte[] { ButtonStates[24 + offset], ButtonStates[25 + offset] }, 0);
                 ButtonState.gyro.Roll = BitConverter.ToInt16(new byte[] { ButtonStates[26 + offset], ButtonStates[27 + offset] }, 0);
+      
+                // battery
+                this.Battery.State = (BatteryState.State)((byte)(ButtonStates[53 + offset] & 0xF0) >> 4);
+                this.Battery.Level = Math.Min((int)((ButtonStates[53+offset] & 0x0F) * 10 + 5), 100);
             }
             catch (Exception e)
             {

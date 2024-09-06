@@ -17,10 +17,11 @@ namespace ConsoleApp2
             dualsense.SetAudioOutput(AudioOutput.SPEAKER);
             dualsense.TurnMicrophoneOn();
             dualsense.SetSpeakerVolumeInSoftware(0.1f, 1, 1);
+            dualsense.SetVibrationType(Vibrations.VibrationType.Standard_Rumble);
 
             while (true)
             {
-                Console.WriteLine(dualsense.ButtonState.trackPadTouch1.X);
+                Console.WriteLine(dualsense.Battery.State);
                 Thread.Sleep(10);
             }
 
