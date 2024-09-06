@@ -548,8 +548,16 @@ namespace Wujek_Dualsense_API
                 ButtonState.gyro.Roll = BitConverter.ToInt16(new byte[] { ButtonStates[26 + offset], ButtonStates[27 + offset] }, 0);
       
                 // battery
-                this.Battery.State = (BatteryState.State)((byte)(ButtonStates[53 + offset] & 0xF0) >> 4);
-                this.Battery.Level = Math.Min((int)((ButtonStates[53+offset] & 0x0F) * 10 + 5), 100);
+                if(this.ConnectionType == ConnectionType.BT)
+                {
+                    this.Battery.State = (BatteryState.State)((byte)(ButtonStates[53 + offset] & 0xF0) >> 4);
+                    this.Battery.Level = Math.Min((int)((ButtonStates[53 + offset] & 0x0F) * 10 + 5), 100);
+                }
+                else
+                {
+                    this.Battery.State = BatteryState.State.POWER_SUPPLY_STATUS_UNKNOWN;
+                    this.Battery.Level = (int)100;                  
+                }
             }
             catch (Exception e)
             {

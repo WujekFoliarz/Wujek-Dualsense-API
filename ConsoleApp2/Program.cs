@@ -12,18 +12,13 @@ namespace ConsoleApp2
             dualsense.Start();
             dualsense.Connection.ControllerDisconnected += Connection_ControllerDisconnected;
             dualsense.SetMicrophoneLED(LED.MicrophoneLED.PULSE);
-            dualsense.SetLightbar(255, 255, 255);
+            dualsense.SetLightbar(255, 255, 2);
             dualsense.StartSystemAudioToHaptics();
             dualsense.SetAudioOutput(AudioOutput.SPEAKER);
             dualsense.TurnMicrophoneOn();
             dualsense.SetSpeakerVolumeInSoftware(0.1f, 1, 1);
             dualsense.SetVibrationType(Vibrations.VibrationType.Standard_Rumble);
 
-            while (true)
-            {
-                Console.WriteLine(dualsense.Battery.State);
-                Thread.Sleep(10);
-            }
 
             void Connection_ControllerDisconnected(object? sender, ConnectionStatus.Controller e)
             {
