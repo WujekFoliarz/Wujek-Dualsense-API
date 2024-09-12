@@ -550,7 +550,7 @@ namespace Wujek_Dualsense_API
                 ButtonState.gyro.Yaw = BitConverter.ToInt16(new byte[] { ButtonStates[24 + offset], ButtonStates[25 + offset] }, 0);
                 ButtonState.gyro.Roll = BitConverter.ToInt16(new byte[] { ButtonStates[26 + offset], ButtonStates[27 + offset] }, 0);
 
-                ButtonState.SensorTimestamp = BitConverter.ToInt32(new byte[] { ButtonStates[28 + offset], ButtonStates[29 + offset], ButtonStates[30 + offset] }, 0);
+                ButtonState.SensorTimestamp = BitConverter.ToInt16(new byte[] { ButtonStates[28 + offset], ButtonStates[29 + offset] }, 0);
 
                 // battery
                 if(this.ConnectionType == ConnectionType.BT)
@@ -574,8 +574,8 @@ namespace Wujek_Dualsense_API
                 else
                 {
                     Connection.OnControllerDisconnect(ControllerNumber);
-                    //MessageBox.Show(e.Message + e.Source + e.StackTrace);
-                    //Console.WriteLine(e.Message + e.Source + e.StackTrace);
+                    MessageBox.Show(e.Message + e.Source + e.StackTrace);
+                    Console.WriteLine(e.Message + e.Source + e.StackTrace);
                 }
             }
         }
