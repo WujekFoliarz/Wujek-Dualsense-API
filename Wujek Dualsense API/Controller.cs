@@ -549,7 +549,9 @@ namespace Wujek_Dualsense_API
                 ButtonState.gyro.Pitch = BitConverter.ToInt16(new byte[] { ButtonStates[22 + offset], ButtonStates[23 + offset] }, 0);
                 ButtonState.gyro.Yaw = BitConverter.ToInt16(new byte[] { ButtonStates[24 + offset], ButtonStates[25 + offset] }, 0);
                 ButtonState.gyro.Roll = BitConverter.ToInt16(new byte[] { ButtonStates[26 + offset], ButtonStates[27 + offset] }, 0);
-      
+
+                ButtonState.SensorTimestamp = BitConverter.ToInt32(new byte[] { ButtonStates[28 + offset], ButtonStates[29 + offset], ButtonStates[30 + offset] }, 0);
+
                 // battery
                 if(this.ConnectionType == ConnectionType.BT)
                 {
@@ -747,6 +749,7 @@ namespace Wujek_Dualsense_API
         public bool micBtn;
         public int RX, RY, LX, LY;
         public int TouchPacketNum;
+        public int SensorTimestamp;
         public Touchpad trackPadTouch0 = new Touchpad();
         public Touchpad trackPadTouch1 = new Touchpad();
         public Gyro gyro = new Gyro();
