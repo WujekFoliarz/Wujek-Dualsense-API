@@ -19,6 +19,11 @@ namespace ConsoleApp2
             dualsense.SetSpeakerVolumeInSoftware(0.1f, 1, 1);
             dualsense.SetVibrationType(Vibrations.VibrationType.Standard_Rumble);
 
+            while (true)
+            {
+                Console.WriteLine(dualsense.ButtonState.TouchPacketNum);
+                Thread.Sleep(100);
+            }
             void Connection_ControllerDisconnected(object? sender, ConnectionStatus.Controller e)
             {
                 Console.WriteLine("Controller number " + e.ControllerNumber + " was disconnected!");

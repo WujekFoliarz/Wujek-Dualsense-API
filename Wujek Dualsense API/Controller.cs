@@ -526,16 +526,19 @@ namespace Wujek_Dualsense_API
                 ButtonState.micBtn = (misc2 & 0x04) != 0;
 
                 // trackpad touch
+                ButtonState.trackPadTouch0.RawTrackingNum = (byte)(ButtonStates[33 + offset]);
                 ButtonState.trackPadTouch0.ID = (byte)(ButtonStates[33 + offset] & 0x7F);
                 ButtonState.trackPadTouch0.IsActive = (ButtonStates[33 + offset] & 0x80) == 0;
                 ButtonState.trackPadTouch0.X = ((ButtonStates[35 + offset] & 0x0F) << 8) | ButtonStates[34 + offset];
                 ButtonState.trackPadTouch0.Y = ((ButtonStates[36 + offset]) << 4) | ((ButtonStates[35 + offset] & 0xF0) >> 4);
 
                 // trackpad touch
+                ButtonState.trackPadTouch1.RawTrackingNum = (byte)(ButtonStates[37 + offset]);
                 ButtonState.trackPadTouch1.ID = (byte)(ButtonStates[37 + offset] & 0x7F);
                 ButtonState.trackPadTouch1.IsActive = (ButtonStates[37 + offset] & 0x80) == 0;
                 ButtonState.trackPadTouch1.X = ((ButtonStates[39 + offset] & 0x0F) << 8) | ButtonStates[38 + offset];
                 ButtonState.trackPadTouch1.Y = ((ButtonStates[40 + offset]) << 4) | ((ButtonStates[39 + offset] & 0xF0) >> 4);
+                ButtonState.TouchPacketNum = (byte)(ButtonStates[41 + offset]);
 
                 // accelerometer
                 ButtonState.accelerometer.X = BitConverter.ToInt16(new byte[] { ButtonStates[16 + offset], ButtonStates[17 + offset] }, 0);
@@ -743,6 +746,7 @@ namespace Wujek_Dualsense_API
         public bool touchFinger1, touchFinger2;
         public bool micBtn;
         public int RX, RY, LX, LY;
+        public int TouchPacketNum;
         public Touchpad trackPadTouch0 = new Touchpad();
         public Touchpad trackPadTouch1 = new Touchpad();
         public Gyro gyro = new Gyro();
