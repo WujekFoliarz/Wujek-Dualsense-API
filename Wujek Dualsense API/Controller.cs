@@ -785,7 +785,7 @@ namespace Wujek_Dualsense_API
                 case 5:
                     DpadUp = false;
                     DpadDown = true;
-                    DpadLeft = false;
+                    DpadLeft = true;
                     DpadRight = false;
                     break;
                 case 6:
