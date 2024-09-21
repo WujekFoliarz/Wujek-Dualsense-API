@@ -13,17 +13,11 @@ namespace ConsoleApp2
             dualsense.Connection.ControllerDisconnected += Connection_ControllerDisconnected;
             dualsense.SetMicrophoneLED(LED.MicrophoneLED.PULSE);
             dualsense.SetLightbar(255, 255, 2);
-            dualsense.StartSystemAudioToHaptics();
             dualsense.SetAudioOutput(AudioOutput.SPEAKER);
             dualsense.TurnMicrophoneOn();
-            dualsense.SetSpeakerVolumeInSoftware(0.1f, 1, 1);
-            dualsense.SetVibrationType(Vibrations.VibrationType.Standard_Rumble);
+            dualsense.SetSpeakerVolumeInSoftware(1, 1, 1);
+            dualsense.StartHapticsToSpeaker();
 
-            while (true)
-            {
-                Console.WriteLine(dualsense.ButtonState.TouchPacketNum);
-                Thread.Sleep(100);
-            }
             void Connection_ControllerDisconnected(object? sender, ConnectionStatus.Controller e)
             {
                 Console.WriteLine("Controller number " + e.ControllerNumber + " was disconnected!");

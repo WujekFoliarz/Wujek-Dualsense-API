@@ -9,7 +9,7 @@
 	  <Company></Company>
 	  <PackageId>Wujek_Dualsense_API</PackageId>
 	  <Title>Wujek Dualsense API</Title>
-	  <Version>1.4.8</Version>
+	  <Version>1.4.9</Version>
 	  <Authors>Wujek_Foliarz</Authors>
 	  <Product>Wujek Dualsense API</Product>
 	  <Description>Wujek Dualsense API is a .NET library designed to interface with the PlayStation DualSense controller, providing functionalities to control its various features such as haptic feedback, LEDs, triggers, and more.</Description>

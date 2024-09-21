@@ -172,6 +172,14 @@ namespace Wujek_Dualsense_API
             }
         }
 
+        public void StartHapticsToSpeaker()
+        {
+            if (this.ConnectionType == ConnectionType.USB && hapticFeedback != null)
+            {
+                hapticFeedback.HapticPassthrough = true;
+            }
+        }
+
         /// <summary>
         /// Stops capturing system audio
         /// </summary>
@@ -540,15 +548,15 @@ namespace Wujek_Dualsense_API
                 ButtonState.trackPadTouch1.Y = ((ButtonStates[40 + offset]) << 4) | ((ButtonStates[39 + offset] & 0xF0) >> 4);
                 ButtonState.TouchPacketNum = (byte)(ButtonStates[41 + offset]);
 
-                // accelerometer
-                ButtonState.accelerometer.X = BitConverter.ToInt16(new byte[] { ButtonStates[16 + offset], ButtonStates[17 + offset] }, 0);
-                ButtonState.accelerometer.Y = BitConverter.ToInt16(new byte[] { ButtonStates[18 + offset], ButtonStates[19 + offset] }, 0);
-                ButtonState.accelerometer.Z = BitConverter.ToInt16(new byte[] { ButtonStates[20 + offset], ButtonStates[21 + offset] }, 0);
+                // gyro
+                ButtonState.gyro.X = BitConverter.ToInt16(new byte[] { ButtonStates[16 + offset], ButtonStates[17 + offset] }, 0);
+                ButtonState.gyro.Y = BitConverter.ToInt16(new byte[] { ButtonStates[18 + offset], ButtonStates[19 + offset] }, 0);
+                ButtonState.gyro.Z = BitConverter.ToInt16(new byte[] { ButtonStates[20 + offset], ButtonStates[21 + offset] }, 0);
 
-                // gyrometer
-                ButtonState.gyro.Pitch = BitConverter.ToInt16(new byte[] { ButtonStates[22 + offset], ButtonStates[23 + offset] }, 0);
-                ButtonState.gyro.Yaw = BitConverter.ToInt16(new byte[] { ButtonStates[24 + offset], ButtonStates[25 + offset] }, 0);
-                ButtonState.gyro.Roll = BitConverter.ToInt16(new byte[] { ButtonStates[26 + offset], ButtonStates[27 + offset] }, 0);
+                // accel
+                ButtonState.accelerometer.X = BitConverter.ToInt16(new byte[] { ButtonStates[22 + offset], ButtonStates[23 + offset] }, 0);
+                ButtonState.accelerometer.Y = BitConverter.ToInt16(new byte[] { ButtonStates[24 + offset], ButtonStates[25 + offset] }, 0);
+                ButtonState.accelerometer.Z = BitConverter.ToInt16(new byte[] { ButtonStates[26 + offset], ButtonStates[27 + offset] }, 0);
 
                 // battery
                 if(this.ConnectionType == ConnectionType.BT)
