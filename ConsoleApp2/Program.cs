@@ -16,8 +16,10 @@ namespace ConsoleApp2
             dualsense.SetAudioOutput(AudioOutput.SPEAKER);
             dualsense.TurnMicrophoneOn();
             dualsense.SetSpeakerVolumeInSoftware(1, 1, 1);
-            dualsense.StartHapticsToSpeaker();
-
+            Thread.Sleep(1000);
+            dualsense.SetLightbar(255, 255, 255);
+            dualsense.ReadOnly = true;
+            Console.WriteLine(dualsense.Battery.State);
             void Connection_ControllerDisconnected(object? sender, ConnectionStatus.Controller e)
             {
                 Console.WriteLine("Controller number " + e.ControllerNumber + " was disconnected!");

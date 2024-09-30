@@ -15,7 +15,6 @@ namespace Wujek_Dualsense_API
         private WasapiOut audioPassthroughStream;
         private WasapiOut hapticsToSpeakerStream;
         private WasapiLoopbackCapture wasapiLoopbackCapture = null;
-        private WasapiLoopbackCapture dualsenseLoopback = null;
         private MMDeviceEnumerator mmdeviceEnumerator = new MMDeviceEnumerator();
         private bool StartNewPlayback = true;
         public BufferedWaveProvider bufferedWaveProvider = new BufferedWaveProvider(WaveFormat.CreateCustomFormat(WaveFormatEncoding.IeeeFloat, 48000, 2, 32, 8, 8));
@@ -25,7 +24,6 @@ namespace Wujek_Dualsense_API
         public float leftActuatorVolume = 1;
         public float rightActuatorVolume = 1;
         public bool SystemAudioPlayback = false;
-        public bool HapticPassthrough = false;
         private string audioID = string.Empty;
 
 
@@ -117,26 +115,6 @@ namespace Wujek_Dualsense_API
             multiplexingWaveProviderAP.ConnectInputToOutput(0, 2);
             multiplexingWaveProviderAP.ConnectInputToOutput(1, 3);
 
-
-            // HAPTIC PASSTHROUGH
-            dualsenseLoopback = new WasapiLoopbackCapture(device);
-            dualsenseLoopback.DataAvailable += DualsenseLoopback_DataAvailable;
-            hapticsToSpeakerBuffer = new BufferedWaveProvider(WaveFormat.CreateCustomFormat(dualsenseLoopback.WaveFormat.Encoding, dualsenseLoopback.WaveFormat.SampleRate, 4, dualsenseLoopback.WaveFormat.AverageBytesPerSecond, dualsenseLoopback.WaveFormat.BlockAlign, dualsenseLoopback.WaveFormat.BitsPerSample));
-            dualsenseLoopback.StartRecording();
-            hapticsToSpeakerStream = new WasapiOut(device, AudioClientShareMode.Shared, true, 10);
-            hapticsToSpeakerBuffer.BufferLength = 5000000; // 5MB buffer
-            hapticsToSpeakerBuffer.ReadFully = true;
-            hapticsToSpeakerBuffer.DiscardOnBufferOverflow = true;
-
-            MultiplexingWaveProvider multiplexingWaveProviderHS = new MultiplexingWaveProvider(new BufferedWaveProvider[] {
-                hapticsToSpeakerBuffer,
-            }, 4);
-
-            multiplexingWaveProviderHS.ConnectInputToOutput(0, 0);
-            multiplexingWaveProviderHS.ConnectInputToOutput(2, 1);
-            multiplexingWaveProviderHS.ConnectInputToOutput(2, 2);
-            multiplexingWaveProviderHS.ConnectInputToOutput(3, 3);
-
             // Start the streams
             hapticStream.Init(multiplexingWaveProvider);
             Thread t = new Thread(new ThreadStart(Play));
@@ -147,15 +125,6 @@ namespace Wujek_Dualsense_API
             Thread AudioPassthroughPlayThread = new Thread(() => PlayAudioPassthrough());
             AudioPassthroughPlayThread.IsBackground = true;
             AudioPassthroughPlayThread.Start();
-
-            hapticsToSpeakerStream.Init(multiplexingWaveProviderHS);
-            Thread HapticPassthroughPlayThread = new Thread(() => PlayHapticPassthrough());
-            HapticPassthroughPlayThread.IsBackground = true;
-            HapticPassthroughPlayThread.Start();
-            hapticsToSpeakerStream.AudioStreamVolume.SetChannelVolume(0, 0);
-            hapticsToSpeakerStream.AudioStreamVolume.SetChannelVolume(1, 1);
-            hapticsToSpeakerStream.AudioStreamVolume.SetChannelVolume(2, 0);
-            hapticsToSpeakerStream.AudioStreamVolume.SetChannelVolume(3, 0);
 
             setVolume(speakerPlaybackVolume, leftActuatorVolume, rightActuatorVolume);
         }
@@ -173,14 +142,6 @@ namespace Wujek_Dualsense_API
             wasapiLoopbackCapture.RecordingStopped += WasapiLoopbackCapture_RecordingStopped;
             wasapiLoopbackCapture.DataAvailable += WasapiLoopbackCapture_DataAvailable;
             wasapiLoopbackCapture.StartRecording();
-        }
-
-        private void DualsenseLoopback_DataAvailable(object? sender, WaveInEventArgs e)
-        {
-            if (HapticPassthrough)
-            {
-                hapticsToSpeakerBuffer.AddSamples(e.Buffer, 0, e.BytesRecorded);
-            }
         }
 
         public void ReinitializeHapticFeedback()
@@ -272,6 +233,10 @@ namespace Wujek_Dualsense_API
             {
                 audioPassthroughStream.Dispose();
                 audioPassthroughBuffer.ClearBuffer();
+            }
+
+            if (hapticsToSpeakerStream != null) {
+                hapticsToSpeakerStream.Dispose();           
             }
 
             if (wasapiLoopbackCapture != null)
