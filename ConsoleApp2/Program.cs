@@ -8,7 +8,7 @@ namespace ConsoleApp2
     {
         static void Main()
         {
-            Dualsense dualsense = new Dualsense(0);
+            Dualsense dualsense = new Dualsense(DualsenseUtils.GetControllerIDs()[0]);
             dualsense.Start();
             dualsense.Connection.ControllerDisconnected += Connection_ControllerDisconnected;
             dualsense.SetMicrophoneLED(LED.MicrophoneLED.PULSE);
@@ -18,8 +18,11 @@ namespace ConsoleApp2
             dualsense.SetSpeakerVolumeInSoftware(1, 1, 1);
             Thread.Sleep(1000);
             dualsense.SetLightbar(255, 255, 255);
+            dualsense.StartSystemAudioToHaptics();
             dualsense.ReadOnly = true;
-            Console.WriteLine(dualsense.Battery.State);
+            Console.WriteLine(dualsense.Battery.State + " | " + dualsense.Battery.Level);
+
+
             void Connection_ControllerDisconnected(object? sender, ConnectionStatus.Controller e)
             {
                 Console.WriteLine("Controller number " + e.ControllerNumber + " was disconnected!");

@@ -53,7 +53,7 @@ namespace Wujek_Dualsense_API
         public byte RightRotor = 0;
         public int ControllerNumber = 0;
 
-        public Dualsense(int ControllerNumber)
+        public Dualsense(string DeviceID)
         {
             Connection = new ConnectionStatus();
             DeviceList list = DeviceList.Local;
@@ -61,13 +61,13 @@ namespace Wujek_Dualsense_API
 
             foreach (var deviceInfo in list.GetHidDevices())
             {
-                if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3302) // DualSense
+                if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3302 && deviceInfo.DevicePath == DeviceID) // DualSense
                 {
                     reportLength = deviceInfo.GetMaxOutputReportLength();
                     DeviceType = DeviceType.DualSense;
                     devices.Add(deviceInfo);
                 }
-                else if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3570) // DualSense Edge
+                else if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3570 && deviceInfo.DevicePath == DeviceID) // DualSense Edge
                 {
                     reportLength = deviceInfo.GetMaxOutputReportLength();
                     DeviceType = DeviceType.DualSense_Edge;
@@ -94,13 +94,13 @@ namespace Wujek_Dualsense_API
                 AudioDeviceID = PnPDevice.GetDeviceByInterfaceId(devices[ControllerNumber].DevicePath).Parent.DeviceId.ToString();
                 SetSpeakerVolume(100);
                 SetMicrophoneVolume(35);
-                hapticFeedback = new HapticFeedback(AudioDeviceID, 1,1,1);
+                hapticFeedback = new HapticFeedback(AudioDeviceID, 1, 1, 1);
             }
         }
 
         public void ReinitializeHapticFeedback()
         {
-            if(this.ConnectionType == ConnectionType.USB && hapticFeedback != null)
+            if (this.ConnectionType == ConnectionType.USB && hapticFeedback != null)
             {
                 hapticFeedback.ReinitializeHapticFeedback();
             }
@@ -151,7 +151,6 @@ namespace Wujek_Dualsense_API
             }
         }
 
-
         /// <summary>
         /// Sets audio output on your controller
         /// </summary>
@@ -167,7 +166,7 @@ namespace Wujek_Dualsense_API
         /// <returns></returns>
         public void StartSystemAudioToHaptics()
         {
-            if(this.ConnectionType == ConnectionType.USB && hapticFeedback != null)
+            if (this.ConnectionType == ConnectionType.USB && hapticFeedback != null)
             {
                 hapticFeedback.SystemAudioPlayback = true;
             }
@@ -425,10 +424,9 @@ namespace Wujek_Dualsense_API
             {
                 cts.Dispose();
                 cts = new CancellationTokenSource();
+            }
 
-    }
-
-    transitionTask = new Task(() => transitionLightBar(R, G, B, transitionSteps, transitionDelay, cts.Token));
+            transitionTask = new Task(() => transitionLightBar(R, G, B, transitionSteps, transitionDelay, cts.Token));
             transitionTask.Start();
         }
 
@@ -720,7 +718,7 @@ namespace Wujek_Dualsense_API
         /// </summary>
         /// <returns></returns>
         public void Dispose()
-        {           
+        {
             ReadOnly = false;
             Working = false;
             ResetSettings();
@@ -760,48 +758,56 @@ namespace Wujek_Dualsense_API
                     DpadLeft = false;
                     DpadRight = false;
                     break;
+
                 case 1:
                     DpadUp = true;
                     DpadDown = false;
                     DpadLeft = false;
                     DpadRight = true;
                     break;
+
                 case 2:
                     DpadUp = false;
                     DpadDown = false;
                     DpadLeft = false;
                     DpadRight = true;
                     break;
+
                 case 3:
                     DpadUp = false;
                     DpadDown = true;
                     DpadLeft = false;
                     DpadRight = true;
                     break;
+
                 case 4:
                     DpadUp = false;
                     DpadDown = true;
                     DpadLeft = false;
                     DpadRight = false;
                     break;
+
                 case 5:
                     DpadUp = false;
                     DpadDown = true;
                     DpadLeft = true;
                     DpadRight = false;
                     break;
+
                 case 6:
                     DpadUp = false;
                     DpadDown = false;
                     DpadLeft = true;
                     DpadRight = false;
                     break;
+
                 case 7:
                     DpadUp = true;
                     DpadDown = false;
                     DpadLeft = true;
                     DpadRight = false;
                     break;
+
                 default:
                     DpadUp = false;
                     DpadDown = false;
