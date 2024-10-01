@@ -53,7 +53,7 @@ namespace Wujek_Dualsense_API
         public byte RightRotor = 0;
         public int ControllerNumber = 0;
 
-        public Dualsense(string DeviceID)
+        public Dualsense(string DevicePath)
         {
             Connection = new ConnectionStatus();
             DeviceList list = DeviceList.Local;
@@ -61,13 +61,13 @@ namespace Wujek_Dualsense_API
 
             foreach (var deviceInfo in list.GetHidDevices())
             {
-                if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3302 && deviceInfo.DevicePath == DeviceID) // DualSense
+                if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3302 && deviceInfo.DevicePath == DevicePath) // DualSense
                 {
                     reportLength = deviceInfo.GetMaxOutputReportLength();
                     DeviceType = DeviceType.DualSense;
                     devices.Add(deviceInfo);
                 }
-                else if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3570 && deviceInfo.DevicePath == DeviceID) // DualSense Edge
+                else if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 3570 && deviceInfo.DevicePath == DevicePath) // DualSense Edge
                 {
                     reportLength = deviceInfo.GetMaxOutputReportLength();
                     DeviceType = DeviceType.DualSense_Edge;
