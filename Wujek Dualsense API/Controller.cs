@@ -13,6 +13,7 @@ using Windows.Devices.Power;
 using Windows.System.Power;
 using NAudio.Utils;
 using Windows.Media.Playback;
+using HidSharp.Utility;
 
 namespace Wujek_Dualsense_API
 {
@@ -556,18 +557,9 @@ namespace Wujek_Dualsense_API
                 {
                     Connection.OnControllerDisconnect(ControllerNumber);
                 }
-                else if (e.Message.Contains("HidSharp.Platform.Windows.NativeMethods.OverlappedOperation"))
+                else if (e.Message.Contains("Closed."))
                 {
-                    if(this.ConnectionType == ConnectionType.BT)
-                    {
-                        Dispose();
-                    }
-                    else
-                    {
-                        Console.WriteLine(e.Message + e.Source + e.StackTrace);
-                        MessageBox.Show(e.Message + e.Source + e.StackTrace);
-                        Connection.OnControllerDisconnect(ControllerNumber);
-                    }
+                    // ignore
                 }
                 else
                 {
