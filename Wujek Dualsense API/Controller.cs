@@ -11,6 +11,8 @@ using static Wujek_Dualsense_API.Motion;
 using static Wujek_Dualsense_API.BatteryState;
 using Windows.Devices.Power;
 using Windows.System.Power;
+using NAudio.Utils;
+using Windows.Media.Playback;
 
 namespace Wujek_Dualsense_API
 {
@@ -133,16 +135,10 @@ namespace Wujek_Dualsense_API
         public void ResetSettings()
         {
             SetVibrationType(Vibrations.VibrationType.Haptic_Feedback); // Haptic feedback is native
-
-            if (this.ConnectionType == ConnectionType.BT)
-                SetLightbar(0, 0, 255);
-            else
-                ReleaseLED();
-
+            ReleaseLED();
             SetLeftTrigger(TriggerType.TriggerModes.Rigid_B, 0, 0, 0, 0, 0, 0, 0);
             SetRightTrigger(TriggerType.TriggerModes.Rigid_B, 0, 0, 0, 0, 0, 0, 0);
             SetStandardRumble(0, 0);
-
             if (this.ConnectionType == ConnectionType.USB)
             {
                 TurnMicrophoneOn();
@@ -560,11 +556,24 @@ namespace Wujek_Dualsense_API
                 {
                     Connection.OnControllerDisconnect(ControllerNumber);
                 }
+                else if (e.Message.Contains("HidSharp.Platform.Windows.NativeMethods.OverlappedOperation"))
+                {
+                    if(this.ConnectionType == ConnectionType.BT)
+                    {
+                        Dispose();
+                    }
+                    else
+                    {
+                        Console.WriteLine(e.Message + e.Source + e.StackTrace);
+                        MessageBox.Show(e.Message + e.Source + e.StackTrace);
+                        Connection.OnControllerDisconnect(ControllerNumber);
+                    }
+                }
                 else
                 {
-                    Connection.OnControllerDisconnect(ControllerNumber);
-                    MessageBox.Show(e.Message + e.Source + e.StackTrace);
                     Console.WriteLine(e.Message + e.Source + e.StackTrace);
+                    MessageBox.Show(e.Message + e.Source + e.StackTrace);
+                    Connection.OnControllerDisconnect(ControllerNumber);
                 }
             }
         }

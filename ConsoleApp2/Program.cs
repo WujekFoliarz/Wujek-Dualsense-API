@@ -17,9 +17,7 @@ namespace ConsoleApp2
             dualsense.TurnMicrophoneOn();
             dualsense.SetSpeakerVolumeInSoftware(1, 1, 1);
             Thread.Sleep(1000);
-            dualsense.SetLightbar(255, 255, 255);
-            dualsense.StartSystemAudioToHaptics();
-            dualsense.ReadOnly = true;
+            Console.WriteLine(DualsenseUtils.GetControllerIDs()[0]);
             Console.WriteLine(dualsense.Battery.State + " | " + dualsense.Battery.Level);
 
 
