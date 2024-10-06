@@ -581,6 +581,9 @@ namespace Wujek_Dualsense_API
                     ButtonState.cross = (buttonButtonState & (1 << 5)) != 0;
                     ButtonState.square = (buttonButtonState & (1 << 4)) != 0;
 
+                    byte dpad_ButtonState = (byte)(buttonButtonState & 0x0F);
+                    ButtonState.SetDPadState(dpad_ButtonState);
+
                     byte misc = ButtonStates[6 + offset];
                     ButtonState.R3 = (misc & (1 << 7)) != 0;
                     ButtonState.L3 = (misc & (1 << 6)) != 0;

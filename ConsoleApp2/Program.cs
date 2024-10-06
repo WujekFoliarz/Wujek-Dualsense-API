@@ -20,7 +20,7 @@ namespace ConsoleApp2
 
             while (true)
             {
-                Console.WriteLine(dualsense.ButtonState.ps);
+                Console.WriteLine(dualsense.ButtonState.DpadUp);
                 Thread.Sleep(100);
             }
 
