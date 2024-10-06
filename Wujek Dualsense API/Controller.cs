@@ -76,6 +76,12 @@ namespace Wujek_Dualsense_API
                     DeviceType = DeviceType.DualSense_Edge;
                     devices.Add(deviceInfo);
                 }
+                else if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 1476 && deviceInfo.DevicePath == DevicePath) // DualShock 4
+                {
+                    reportLength = deviceInfo.GetMaxOutputReportLength();
+                    DeviceType = DeviceType.DualShock4;
+                    devices.Add(deviceInfo);
+                }
             }
 
             try
@@ -92,7 +98,7 @@ namespace Wujek_Dualsense_API
 
             this.ConnectionType = getConnectionType();
 
-            if (this.ConnectionType == ConnectionType.USB)
+            if (this.ConnectionType == ConnectionType.USB && this.DeviceType == DeviceType.DualSense || this.DeviceType == DeviceType.DualSense_Edge)
             {
                 AudioDeviceID = PnPDevice.GetDeviceByInterfaceId(devices[ControllerNumber].DevicePath).Parent.DeviceId.ToString();
                 SetSpeakerVolume(100);
@@ -582,89 +588,118 @@ namespace Wujek_Dualsense_API
             {
                 byte[] outReport = new byte[reportLength];
 
-                if (this.ConnectionType == ConnectionType.USB)
+                if (this.DeviceType == DeviceType.DualSense || this.DeviceType == DeviceType.DualSense_Edge)
                 {
-                    outReport[0] = 2;
-                    outReport[1] = (byte)rumbleMode;
-                    outReport[2] = (byte)featureType;
-                    outReport[3] = (byte)RightRotor; // right low freq motor 0-255
-                    outReport[4] = (byte)LeftRotor; // left low freq motor 0-255
-                    outReport[5] = 0x7C; // <-- headset volume
-                    outReport[6] = (byte)SpeakerVolume; // <-- speaker volume
-                    outReport[7] = (byte)MicrophoneVolume; // <-- mic volume
-                    outReport[8] = (byte)_audioOutput; // <-- audio output
-                    outReport[9] = (byte)micLed; //microphone led
-                    outReport[10] = (byte)microphoneStatus;
-                    outReport[11] = (byte)RightTriggerMode;
-                    outReport[12] = (byte)RightTriggerForces[0];
-                    outReport[13] = (byte)RightTriggerForces[1];
-                    outReport[14] = (byte)RightTriggerForces[2];
-                    outReport[15] = (byte)RightTriggerForces[3];
-                    outReport[16] = (byte)RightTriggerForces[4];
-                    outReport[17] = (byte)RightTriggerForces[5];
-                    outReport[20] = (byte)RightTriggerForces[6];
-                    outReport[22] = (byte)LeftTriggerMode;
-                    outReport[23] = (byte)LeftTriggerForces[0];
-                    outReport[24] = (byte)LeftTriggerForces[1];
-                    outReport[25] = (byte)LeftTriggerForces[2];
-                    outReport[26] = (byte)LeftTriggerForces[3];
-                    outReport[27] = (byte)LeftTriggerForces[4];
-                    outReport[28] = (byte)LeftTriggerForces[5];
-                    outReport[31] = (byte)LeftTriggerForces[6];
-                    outReport[39] = (byte)Brightness.high;
-                    outReport[41] = (byte)Brightness.high;
-                    outReport[42] = (byte)micLedPulse;
-                    outReport[43] = (byte)Brightness.high;
-                    outReport[44] = (byte)_playerLED;
-                    outReport[45] = (byte)lightbar.R;
-                    outReport[46] = (byte)lightbar.G;
-                    outReport[47] = (byte)lightbar.B;
+                    if (this.ConnectionType == ConnectionType.USB)
+                    {
+                        outReport[0] = 2;
+                        outReport[1] = (byte)rumbleMode;
+                        outReport[2] = (byte)featureType;
+                        outReport[3] = (byte)RightRotor; // right low freq motor 0-255
+                        outReport[4] = (byte)LeftRotor; // left low freq motor 0-255
+                        outReport[5] = 0x7C; // <-- headset volume
+                        outReport[6] = (byte)SpeakerVolume; // <-- speaker volume
+                        outReport[7] = (byte)MicrophoneVolume; // <-- mic volume
+                        outReport[8] = (byte)_audioOutput; // <-- audio output
+                        outReport[9] = (byte)micLed; //microphone led
+                        outReport[10] = (byte)microphoneStatus;
+                        outReport[11] = (byte)RightTriggerMode;
+                        outReport[12] = (byte)RightTriggerForces[0];
+                        outReport[13] = (byte)RightTriggerForces[1];
+                        outReport[14] = (byte)RightTriggerForces[2];
+                        outReport[15] = (byte)RightTriggerForces[3];
+                        outReport[16] = (byte)RightTriggerForces[4];
+                        outReport[17] = (byte)RightTriggerForces[5];
+                        outReport[20] = (byte)RightTriggerForces[6];
+                        outReport[22] = (byte)LeftTriggerMode;
+                        outReport[23] = (byte)LeftTriggerForces[0];
+                        outReport[24] = (byte)LeftTriggerForces[1];
+                        outReport[25] = (byte)LeftTriggerForces[2];
+                        outReport[26] = (byte)LeftTriggerForces[3];
+                        outReport[27] = (byte)LeftTriggerForces[4];
+                        outReport[28] = (byte)LeftTriggerForces[5];
+                        outReport[31] = (byte)LeftTriggerForces[6];
+                        outReport[39] = (byte)Brightness.high;
+                        outReport[41] = (byte)Brightness.high;
+                        outReport[42] = (byte)micLedPulse;
+                        outReport[43] = (byte)Brightness.high;
+                        outReport[44] = (byte)_playerLED;
+                        outReport[45] = (byte)lightbar.R;
+                        outReport[46] = (byte)lightbar.G;
+                        outReport[47] = (byte)lightbar.B;
+                    }
+                    else if (this.ConnectionType == ConnectionType.BT)
+                    {
+                        outReport[0] = 0x31;
+                        outReport[1] = 2;
+                        outReport[2] = (byte)rumbleMode;
+                        if (bt_initialized == false)
+                        {
+                            outReport[3] = 0x1 | 0x2 | 0x4 | 0x8 | 0x10 | 0x40;
+                            bt_initialized = true;
+                        }
+                        else if (bt_initialized == true)
+                        {
+                            outReport[3] = (byte)featureType;
+                        }
+                        outReport[4] = (byte)RightRotor; // right low freq motor 0-255
+                        outReport[5] = (byte)LeftRotor; // left low freq motor 0-255
+                        outReport[10] = (byte)micLed; //microphone led
+                        outReport[11] = (byte)microphoneStatus;
+                        outReport[12] = (byte)RightTriggerMode;
+                        outReport[13] = (byte)RightTriggerForces[0];
+                        outReport[14] = (byte)RightTriggerForces[1];
+                        outReport[15] = (byte)RightTriggerForces[2];
+                        outReport[16] = (byte)RightTriggerForces[3];
+                        outReport[17] = (byte)RightTriggerForces[4];
+                        outReport[18] = (byte)RightTriggerForces[5];
+                        outReport[21] = (byte)RightTriggerForces[6];
+                        outReport[23] = (byte)LeftTriggerMode;
+                        outReport[24] = (byte)LeftTriggerForces[0];
+                        outReport[25] = (byte)LeftTriggerForces[1];
+                        outReport[26] = (byte)LeftTriggerForces[2];
+                        outReport[27] = (byte)LeftTriggerForces[3];
+                        outReport[28] = (byte)LeftTriggerForces[4];
+                        outReport[29] = (byte)LeftTriggerForces[5];
+                        outReport[32] = (byte)LeftTriggerForces[6];
+                        outReport[40] = (byte)Brightness.high;
+                        outReport[43] = (byte)Brightness.high;
+                        outReport[44] = (byte)micLedPulse;
+                        outReport[45] = (byte)Brightness.high;
+                        outReport[45] = (byte)_playerLED;
+                        outReport[46] = (byte)lightbar.R;
+                        outReport[47] = (byte)lightbar.G;
+                        outReport[48] = (byte)lightbar.B;
+                        uint crcChecksum = CRC32.ComputeCRC32(outReport, 74);
+                        byte[] checksumBytes = BitConverter.GetBytes(crcChecksum);
+                        Array.Copy(checksumBytes, 0, outReport, 74, 4);
+                    }
                 }
-                else if (this.ConnectionType == ConnectionType.BT)
+                else if(this.DeviceType == DeviceType.DualShock4)
                 {
-                    outReport[0] = 0x31;
-                    outReport[1] = 2;
-                    outReport[2] = (byte)rumbleMode;
-                    if (bt_initialized == false)
+                    if(this.ConnectionType == ConnectionType.USB)
                     {
-                        outReport[3] = 0x1 | 0x2 | 0x4 | 0x8 | 0x10 | 0x40;
-                        bt_initialized = true;
+                        outReport[0] = 0x05;
+                        outReport[1] = 0x07;
+                        outReport[4] = (byte)RightRotor;
+                        outReport[5] = (byte)LeftRotor;
+                        outReport[6] = (byte)lightbar.R;
+                        outReport[7] = (byte)lightbar.G;
+                        outReport[8] = (byte)lightbar.B;
                     }
-                    else if (bt_initialized == true)
+                    else if (this.ConnectionType == ConnectionType.BT)
                     {
-                        outReport[3] = (byte)featureType;
+                        outReport[0] = 0x11;
+                        outReport[1] = (0xC0 | 0x15);
+                        outReport[3] = 0x07;
+                        outReport[4] = 0x04;
+
+                        outReport[6] = (byte)RightRotor;
+                        outReport[7] = (byte)LeftRotor;
+                        outReport[8] = (byte)lightbar.R;
+                        outReport[9] = (byte)lightbar.G;
+                        outReport[10] = (byte)lightbar.B;
                     }
-                    outReport[4] = (byte)RightRotor; // right low freq motor 0-255
-                    outReport[5] = (byte)LeftRotor; // left low freq motor 0-255
-                    outReport[10] = (byte)micLed; //microphone led
-                    outReport[11] = (byte)microphoneStatus;
-                    outReport[12] = (byte)RightTriggerMode;
-                    outReport[13] = (byte)RightTriggerForces[0];
-                    outReport[14] = (byte)RightTriggerForces[1];
-                    outReport[15] = (byte)RightTriggerForces[2];
-                    outReport[16] = (byte)RightTriggerForces[3];
-                    outReport[17] = (byte)RightTriggerForces[4];
-                    outReport[18] = (byte)RightTriggerForces[5];
-                    outReport[21] = (byte)RightTriggerForces[6];
-                    outReport[23] = (byte)LeftTriggerMode;
-                    outReport[24] = (byte)LeftTriggerForces[0];
-                    outReport[25] = (byte)LeftTriggerForces[1];
-                    outReport[26] = (byte)LeftTriggerForces[2];
-                    outReport[27] = (byte)LeftTriggerForces[3];
-                    outReport[28] = (byte)LeftTriggerForces[4];
-                    outReport[29] = (byte)LeftTriggerForces[5];
-                    outReport[32] = (byte)LeftTriggerForces[6];
-                    outReport[40] = (byte)Brightness.high;
-                    outReport[43] = (byte)Brightness.high;
-                    outReport[44] = (byte)micLedPulse;
-                    outReport[45] = (byte)Brightness.high;
-                    outReport[45] = (byte)_playerLED;
-                    outReport[46] = (byte)lightbar.R;
-                    outReport[47] = (byte)lightbar.G;
-                    outReport[48] = (byte)lightbar.B;
-                    uint crcChecksum = CRC32.ComputeCRC32(outReport, 74);
-                    byte[] checksumBytes = BitConverter.GetBytes(crcChecksum);
-                    Array.Copy(checksumBytes, 0, outReport, 74, 4);
                 }
 
                 try
@@ -697,7 +732,7 @@ namespace Wujek_Dualsense_API
                     return ConnectionType.USB;
                 }
             }
-            else
+            else if (DeviceType == DeviceType.DualSense_Edge)
             {
                 if (reportLength >= 94)
                 {
@@ -710,6 +745,21 @@ namespace Wujek_Dualsense_API
                     reportLength = 64;
                     offset = 0;
                     return ConnectionType.USB;
+                }
+            }
+            else
+            {
+                if (reportLength == 32)
+                {
+                    reportLength = 64;
+                    offset = 0;
+                    return ConnectionType.USB;
+                }
+                else
+                {
+                    reportLength = 547;
+                    offset = 0; // ???
+                    return ConnectionType.BT;
                 }
             }
         }

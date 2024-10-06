@@ -4,5 +4,6 @@
     {
         DualSense = 0,
         DualSense_Edge = 1,
+        DualShock4 = 2,
     }
 }
