@@ -488,73 +488,134 @@ namespace Wujek_Dualsense_API
         {
             try
             {
-                byte[] ButtonStates = new byte[reportLength];
-                DSDevice.Read(ButtonStates);
-                if (this.ConnectionType == ConnectionType.BT) { offset = 1; }
+                if(this.DeviceType == DeviceType.DualSense || this.DeviceType == DeviceType.DualSense_Edge)
+                {
+                    byte[] ButtonStates = new byte[reportLength];
+                    DSDevice.Read(ButtonStates);
+                    if (this.ConnectionType == ConnectionType.BT) { offset = 1; }
 
-                // ButtonButtonStates 0 is always 1
-                ButtonState.LX = ButtonStates[1 + offset];
-                ButtonState.LY = ButtonStates[2 + offset];
-                ButtonState.RX = ButtonStates[3 + offset];
-                ButtonState.RY = ButtonStates[4 + offset];
-                ButtonState.L2 = ButtonStates[5 + offset];
-                ButtonState.R2 = ButtonStates[6 + offset];
+                    // ButtonButtonStates 0 is always 1
+                    ButtonState.LX = ButtonStates[1 + offset];
+                    ButtonState.LY = ButtonStates[2 + offset];
+                    ButtonState.RX = ButtonStates[3 + offset];
+                    ButtonState.RY = ButtonStates[4 + offset];
+                    ButtonState.L2 = ButtonStates[5 + offset];
+                    ButtonState.R2 = ButtonStates[6 + offset];
 
-                // ButtonState 7 always increments -> not used anywhere
+                    // ButtonState 7 always increments -> not used anywhere
 
-                byte buttonButtonState = ButtonStates[8 + offset];
-                ButtonState.triangle = (buttonButtonState & (1 << 7)) != 0;
-                ButtonState.circle = (buttonButtonState & (1 << 6)) != 0;
-                ButtonState.cross = (buttonButtonState & (1 << 5)) != 0;
-                ButtonState.square = (buttonButtonState & (1 << 4)) != 0;
+                    byte buttonButtonState = ButtonStates[8 + offset];
+                    ButtonState.triangle = (buttonButtonState & (1 << 7)) != 0;
+                    ButtonState.circle = (buttonButtonState & (1 << 6)) != 0;
+                    ButtonState.cross = (buttonButtonState & (1 << 5)) != 0;
+                    ButtonState.square = (buttonButtonState & (1 << 4)) != 0;
 
-                // dpad
-                byte dpad_ButtonState = (byte)(buttonButtonState & 0x0F);
-                ButtonState.SetDPadState(dpad_ButtonState);
+                    // dpad
+                    byte dpad_ButtonState = (byte)(buttonButtonState & 0x0F);
+                    ButtonState.SetDPadState(dpad_ButtonState);
 
-                byte misc = ButtonStates[9 + offset];
-                ButtonState.R3 = (misc & (1 << 7)) != 0;
-                ButtonState.L3 = (misc & (1 << 6)) != 0;
-                ButtonState.options = (misc & (1 << 5)) != 0;
-                ButtonState.share = (misc & (1 << 4)) != 0;
-                ButtonState.R2Btn = (misc & (1 << 3)) != 0;
-                ButtonState.L2Btn = (misc & (1 << 2)) != 0;
-                ButtonState.R1 = (misc & (1 << 1)) != 0;
-                ButtonState.L1 = (misc & (1 << 0)) != 0;
+                    byte misc = ButtonStates[9 + offset];
+                    ButtonState.R3 = (misc & (1 << 7)) != 0;
+                    ButtonState.L3 = (misc & (1 << 6)) != 0;
+                    ButtonState.options = (misc & (1 << 5)) != 0;
+                    ButtonState.share = (misc & (1 << 4)) != 0;
+                    ButtonState.R2Btn = (misc & (1 << 3)) != 0;
+                    ButtonState.L2Btn = (misc & (1 << 2)) != 0;
+                    ButtonState.R1 = (misc & (1 << 1)) != 0;
+                    ButtonState.L1 = (misc & (1 << 0)) != 0;
 
-                byte misc2 = ButtonStates[10 + offset];
-                ButtonState.ps = (misc2 & (1 << 0)) != 0;
-                ButtonState.touchBtn = (misc2 & 0x02) != 0;
-                ButtonState.micBtn = (misc2 & 0x04) != 0;
+                    byte misc2 = ButtonStates[10 + offset];
+                    ButtonState.ps = (misc2 & (1 << 0)) != 0;
+                    ButtonState.touchBtn = (misc2 & 0x02) != 0;
+                    ButtonState.micBtn = (misc2 & 0x04) != 0;
 
-                // trackpad touch
-                ButtonState.trackPadTouch0.RawTrackingNum = (byte)(ButtonStates[33 + offset]);
-                ButtonState.trackPadTouch0.ID = (byte)(ButtonStates[33 + offset] & 0x7F);
-                ButtonState.trackPadTouch0.IsActive = (ButtonStates[33 + offset] & 0x80) == 0;
-                ButtonState.trackPadTouch0.X = ((ButtonStates[35 + offset] & 0x0F) << 8) | ButtonStates[34 + offset];
-                ButtonState.trackPadTouch0.Y = ((ButtonStates[36 + offset]) << 4) | ((ButtonStates[35 + offset] & 0xF0) >> 4);
+                    // trackpad touch
+                    ButtonState.trackPadTouch0.RawTrackingNum = (byte)(ButtonStates[33 + offset]);
+                    ButtonState.trackPadTouch0.ID = (byte)(ButtonStates[33 + offset] & 0x7F);
+                    ButtonState.trackPadTouch0.IsActive = (ButtonStates[33 + offset] & 0x80) == 0;
+                    ButtonState.trackPadTouch0.X = ((ButtonStates[35 + offset] & 0x0F) << 8) | ButtonStates[34 + offset];
+                    ButtonState.trackPadTouch0.Y = ((ButtonStates[36 + offset]) << 4) | ((ButtonStates[35 + offset] & 0xF0) >> 4);
 
-                // trackpad touch
-                ButtonState.trackPadTouch1.RawTrackingNum = (byte)(ButtonStates[37 + offset]);
-                ButtonState.trackPadTouch1.ID = (byte)(ButtonStates[37 + offset] & 0x7F);
-                ButtonState.trackPadTouch1.IsActive = (ButtonStates[37 + offset] & 0x80) == 0;
-                ButtonState.trackPadTouch1.X = ((ButtonStates[39 + offset] & 0x0F) << 8) | ButtonStates[38 + offset];
-                ButtonState.trackPadTouch1.Y = ((ButtonStates[40 + offset]) << 4) | ((ButtonStates[39 + offset] & 0xF0) >> 4);
-                ButtonState.TouchPacketNum = (byte)(ButtonStates[41 + offset]);
+                    // trackpad touch
+                    ButtonState.trackPadTouch1.RawTrackingNum = (byte)(ButtonStates[37 + offset]);
+                    ButtonState.trackPadTouch1.ID = (byte)(ButtonStates[37 + offset] & 0x7F);
+                    ButtonState.trackPadTouch1.IsActive = (ButtonStates[37 + offset] & 0x80) == 0;
+                    ButtonState.trackPadTouch1.X = ((ButtonStates[39 + offset] & 0x0F) << 8) | ButtonStates[38 + offset];
+                    ButtonState.trackPadTouch1.Y = ((ButtonStates[40 + offset]) << 4) | ((ButtonStates[39 + offset] & 0xF0) >> 4);
+                    ButtonState.TouchPacketNum = (byte)(ButtonStates[41 + offset]);
 
-                // gyro
-                ButtonState.gyro.X = BitConverter.ToInt16(new byte[] { ButtonStates[16 + offset], ButtonStates[17 + offset] }, 0);
-                ButtonState.gyro.Y = BitConverter.ToInt16(new byte[] { ButtonStates[18 + offset], ButtonStates[19 + offset] }, 0);
-                ButtonState.gyro.Z = BitConverter.ToInt16(new byte[] { ButtonStates[20 + offset], ButtonStates[21 + offset] }, 0);
+                    // gyro
+                    ButtonState.gyro.X = BitConverter.ToInt16(new byte[] { ButtonStates[16 + offset], ButtonStates[17 + offset] }, 0);
+                    ButtonState.gyro.Y = BitConverter.ToInt16(new byte[] { ButtonStates[18 + offset], ButtonStates[19 + offset] }, 0);
+                    ButtonState.gyro.Z = BitConverter.ToInt16(new byte[] { ButtonStates[20 + offset], ButtonStates[21 + offset] }, 0);
 
-                // accel
-                ButtonState.accelerometer.X = BitConverter.ToInt16(new byte[] { ButtonStates[22 + offset], ButtonStates[23 + offset] }, 0);
-                ButtonState.accelerometer.Y = BitConverter.ToInt16(new byte[] { ButtonStates[24 + offset], ButtonStates[25 + offset] }, 0);
-                ButtonState.accelerometer.Z = BitConverter.ToInt16(new byte[] { ButtonStates[26 + offset], ButtonStates[27 + offset] }, 0);
+                    // accel
+                    ButtonState.accelerometer.X = BitConverter.ToInt16(new byte[] { ButtonStates[22 + offset], ButtonStates[23 + offset] }, 0);
+                    ButtonState.accelerometer.Y = BitConverter.ToInt16(new byte[] { ButtonStates[24 + offset], ButtonStates[25 + offset] }, 0);
+                    ButtonState.accelerometer.Z = BitConverter.ToInt16(new byte[] { ButtonStates[26 + offset], ButtonStates[27 + offset] }, 0);
 
-                // battery
-                this.Battery.State = (BatteryState.State)((byte)(ButtonStates[53 + offset] & 0xF0) >> 4);
-                this.Battery.Level = Math.Min((int)((ButtonStates[53 + offset] & 0x0F) * 10 + 5), 100);
+                    // battery
+                    this.Battery.State = (BatteryState.State)((byte)(ButtonStates[53 + offset] & 0xF0) >> 4);
+                    this.Battery.Level = Math.Min((int)((ButtonStates[53 + offset] & 0x0F) * 10 + 5), 100);
+                }
+                else if (this.DeviceType == DeviceType.DualShock4)
+                {
+                    byte[] ButtonStates = new byte[reportLength];
+                    DSDevice.Read(ButtonStates);
+                    if (this.ConnectionType == ConnectionType.BT) { offset = 0; } // ???
+
+                    ButtonState.LX = ButtonStates[1 + offset];
+                    ButtonState.LY = ButtonStates[2 + offset];
+                    ButtonState.RX = ButtonStates[3 + offset];
+                    ButtonState.RY = ButtonStates[4 + offset];
+
+                    byte buttonButtonState = ButtonStates[5 + offset];
+                    ButtonState.triangle = (buttonButtonState & (1 << 7)) != 0;
+                    ButtonState.circle = (buttonButtonState & (1 << 6)) != 0;
+                    ButtonState.cross = (buttonButtonState & (1 << 5)) != 0;
+                    ButtonState.square = (buttonButtonState & (1 << 4)) != 0;
+
+                    byte misc = ButtonStates[6 + offset];
+                    ButtonState.R3 = (misc & (1 << 7)) != 0;
+                    ButtonState.L3 = (misc & (1 << 6)) != 0;
+                    ButtonState.options = (misc & (1 << 5)) != 0;
+                    ButtonState.share = (misc & (1 << 4)) != 0;
+                    ButtonState.R2Btn = (misc & (1 << 3)) != 0;
+                    ButtonState.L2Btn = (misc & (1 << 2)) != 0;
+                    ButtonState.R1 = (misc & (1 << 1)) != 0;
+                    ButtonState.L1 = (misc & (1 << 0)) != 0;
+
+                    byte misc2 = ButtonStates[7 + offset];
+                    ButtonState.ps = (misc2 & (1 << 0)) != 0;
+                    ButtonState.touchBtn = (misc2 & 0x02) != 0;
+                    ButtonState.micBtn = (misc2 & 0x04) != 0;
+
+                    ButtonState.L2 = ButtonStates[8 + offset];
+                    ButtonState.R2 = ButtonStates[9 + offset];
+
+                    this.Battery.State = (BatteryState.State)((byte)(ButtonStates[12 + offset] & 0xF0) >> 4);
+                    this.Battery.Level = Math.Min((int)((ButtonStates[12 + offset] & 0x0F) * 10 + 5), 100);
+
+                    ButtonState.gyro.X = BitConverter.ToInt16(new byte[] { ButtonStates[13 + offset], ButtonStates[14 + offset] }, 0);
+                    ButtonState.gyro.Y = BitConverter.ToInt16(new byte[] { ButtonStates[15 + offset], ButtonStates[16 + offset] }, 0);
+                    ButtonState.gyro.Z = BitConverter.ToInt16(new byte[] { ButtonStates[17 + offset], ButtonStates[18 + offset] }, 0);
+
+                    ButtonState.accelerometer.X = BitConverter.ToInt16(new byte[] { ButtonStates[19 + offset], ButtonStates[20 + offset] }, 0);
+                    ButtonState.accelerometer.Y = BitConverter.ToInt16(new byte[] { ButtonStates[21 + offset], ButtonStates[22 + offset] }, 0);
+                    ButtonState.accelerometer.Z = BitConverter.ToInt16(new byte[] { ButtonStates[23 + offset], ButtonStates[24 + offset] }, 0);
+
+                    // trackpad touch
+                    ButtonState.trackPadTouch0.RawTrackingNum = (byte)(ButtonStates[33 + offset]);
+                    ButtonState.trackPadTouch0.ID = (byte)(ButtonStates[34 + offset] & 0x7F);
+                    ButtonState.trackPadTouch0.IsActive = (ButtonStates[35 + offset] & 0x80) == 0;
+                    ButtonState.trackPadTouch0.X = ((ButtonStates[37 + offset] & 0x0F) << 8) | ButtonStates[36 + offset];
+                    ButtonState.trackPadTouch0.Y = ((ButtonStates[38 + offset]) << 4) | ((ButtonStates[39 + offset] & 0xF0) >> 4);
+
+                    // trackpad touch
+                    ButtonState.trackPadTouch1.IsActive = (ButtonStates[39 + offset] & 0x80) == 0;
+                    ButtonState.trackPadTouch1.X = ((ButtonStates[41 + offset] & 0x0F) << 8) | ButtonStates[40 + offset];
+                    ButtonState.trackPadTouch1.Y = ((ButtonStates[42 + offset]) << 4) | ((ButtonStates[43 + offset] & 0xF0) >> 4);
+                }
             }
             catch (Exception e)
             {

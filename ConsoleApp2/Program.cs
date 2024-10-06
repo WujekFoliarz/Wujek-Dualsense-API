@@ -17,7 +17,12 @@ namespace ConsoleApp2
             dualsense.TurnMicrophoneOn();
             dualsense.SetSpeakerVolumeInSoftware(1, 1, 1);
             dualsense.SetVibrationType(Vibrations.VibrationType.Standard_Rumble);
-            dualsense.SetStandardRumble(100, 100);
+
+            while (true)
+            {
+                Console.WriteLine(dualsense.ButtonState.ps);
+                Thread.Sleep(100);
+            }
 
             void Connection_ControllerDisconnected(object? sender, ConnectionStatus.Controller e)
             {
