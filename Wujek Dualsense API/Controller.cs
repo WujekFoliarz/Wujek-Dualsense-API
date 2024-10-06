@@ -82,6 +82,12 @@ namespace Wujek_Dualsense_API
                     DeviceType = DeviceType.DualShock4;
                     devices.Add(deviceInfo);
                 }
+                else if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 2508 && deviceInfo.DevicePath == DevicePath) // DualShock 4 V2
+                {
+                    reportLength = deviceInfo.GetMaxOutputReportLength();
+                    DeviceType = DeviceType.DualShock4;
+                    devices.Add(deviceInfo);
+                }
             }
 
             try

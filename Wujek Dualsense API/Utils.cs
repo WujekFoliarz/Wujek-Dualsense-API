@@ -29,6 +29,10 @@ namespace Wujek_Dualsense_API
                 {
                     IDlist.Add(deviceInfo.DevicePath);
                 }
+                else if (deviceInfo.VendorID == 1356 && deviceInfo.ProductID == 2508) // DualShock 4 V2
+                {
+                    IDlist.Add(deviceInfo.DevicePath);
+                }
             }
 
             return IDlist;
