@@ -4,6 +4,7 @@ namespace Wujek_Dualsense_API
 {
     internal static class CRC32
     {
+        public static uint HASH_SEED = 0xeada2d49;
         private static readonly uint[] ChecksumTableCRC32 =
         {
             0xd202ef8d, 0xa505df1b, 0x3c0c8ea1, 0x4b0bbe37, 0xd56f2b94, 0xa2681b02, 0x3b614ab8, 0x4c667a2e,
@@ -40,8 +41,6 @@ namespace Wujek_Dualsense_API
             0x616495a3, 0x1663a535, 0x8f6af48f, 0xf86dc419, 0x660951ba, 0x110e612c, 0x88073096, 0xff000000
         };
 
-        private const uint HASH_SEED = 0xeada2d49;
-
         public static uint ComputeCRC32(byte[] byteData, int size)
         {
             if (size < 0)
@@ -50,6 +49,48 @@ namespace Wujek_Dualsense_API
             for (int i = 0; i < size; ++i)
                 hashResult = ChecksumTableCRC32[(hashResult & 0xFF) ^ byteData[i]] ^ (hashResult >> 8);
             return hashResult;
+        }
+
+        private const uint CRC_START_32 = 0xFFFFFFFF;
+        private static readonly uint[] crcTab32 = new uint[256];
+        private static bool crcTab32Initialized = false;
+
+        // Initialize the CRC32 lookup table if not done already
+        private static void InitCrc32Tab()
+        {
+            if (crcTab32Initialized) return;
+
+            uint polynomial = 0xEDB88320;
+            for (uint i = 0; i < 256; i++)
+            {
+                uint crc = i;
+                for (uint j = 8; j > 0; j--)
+                {
+                    if ((crc & 1) != 0)
+                        crc = (crc >> 1) ^ polynomial;
+                    else
+                        crc >>= 1;
+                }
+                crcTab32[i] = crc;
+            }
+
+            crcTab32Initialized = true;
+        }
+
+        public static uint Crc32(byte[] inputStr, int numBytes)
+        {
+            InitCrc32Tab();
+
+            uint crc = CRC_START_32;
+            for (int i = 0; i < numBytes; i++)
+            {
+                uint longC = (uint)(0x000000FF & inputStr[i]);
+                uint tmp = crc ^ longC;
+                crc = (crc >> 8) ^ crcTab32[tmp & 0xFF];
+            }
+
+            crc ^= 0xFFFFFFFF;
+            return crc;
         }
     }
 }

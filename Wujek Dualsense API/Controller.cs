@@ -109,7 +109,7 @@ namespace Wujek_Dualsense_API
                 AudioDeviceID = PnPDevice.GetDeviceByInterfaceId(devices[ControllerNumber].DevicePath).Parent.DeviceId.ToString();
                 SetSpeakerVolume(100);
                 SetMicrophoneVolume(35);
-                hapticFeedback = new HapticFeedback(AudioDeviceID, 1, 1, 1);
+                hapticFeedback = new HapticFeedback(AudioDeviceID, 1, 1, 1, this.DeviceType);
             }
         }
 
@@ -202,9 +202,18 @@ namespace Wujek_Dualsense_API
         /// <param name="fileVolumeRightActuator">Sets vibration force of the right side</param>
         /// <param name="ClearBuffer">When set to true, all previous sounds are cancelled in favour of the current one</param>
         /// <returns></returns>
-        public void PlayHaptics(string PathToWAV, float FileVolumeSpeaker, float fileVolumeLeftActuator, float fileVolumeRightActuator, bool ClearBuffer)
+        public void PlayHaptics(string PathToWAV, float FileVolumeSpeaker, float fileVolumeLeftActuator, float fileVolumeRightActuator, bool ClearBuffer, int Channel)
         {
-            if (this.ConnectionType == ConnectionType.USB && rumbleMode == Vibrations.VibrationType.Haptic_Feedback)
+            if(Channel > 10 || Channel < 0)
+            {
+                throw new Exception("Channel can't be set to less than 0 or more than 10");
+            }
+            else if(Channel != 0)
+            {
+                Channel = Channel-1;
+            }
+
+            if (this.ConnectionType == ConnectionType.USB && rumbleMode == Vibrations.VibrationType.Haptic_Feedback && hapticFeedback != null)
             {
                 hapticFeedback.setVolume(FileVolumeSpeaker, fileVolumeLeftActuator, fileVolumeRightActuator);
 
@@ -224,14 +233,14 @@ namespace Wujek_Dualsense_API
                                 try
                                 {
                                     if (ClearBuffer)
-                                        hapticFeedback.bufferedWaveProvider.ClearBuffer();
+                                        hapticFeedback.bufferedWaveProvider[Channel].ClearBuffer();
 
-                                    hapticFeedback.bufferedWaveProvider.AddSamples(pair.Value, 0, pair.Value.Length);
+                                    hapticFeedback.bufferedWaveProvider[Channel].AddSamples(pair.Value, 0, pair.Value.Length);
                                 }
                                 catch (Exception)
                                 {
-                                    hapticFeedback.bufferedWaveProvider.ClearBuffer();
-                                    hapticFeedback.bufferedWaveProvider.AddSamples(pair.Value, 0, pair.Value.Length);
+                                    hapticFeedback.bufferedWaveProvider[Channel].ClearBuffer();
+                                    hapticFeedback.bufferedWaveProvider[Channel].AddSamples(pair.Value, 0, pair.Value.Length);
                                 }
                             }
                         }
@@ -240,14 +249,14 @@ namespace Wujek_Dualsense_API
                     try
                     {
                         if (ClearBuffer)
-                            hapticFeedback.bufferedWaveProvider.ClearBuffer();
+                            hapticFeedback.bufferedWaveProvider[Channel].ClearBuffer();
 
-                        hapticFeedback.bufferedWaveProvider.AddSamples(file, 0, file.Length);
+                        hapticFeedback.bufferedWaveProvider[Channel].AddSamples(file, 0, file.Length);
                     }
                     catch (Exception)
                     {
-                        hapticFeedback.bufferedWaveProvider.ClearBuffer();
-                        hapticFeedback.bufferedWaveProvider.AddSamples(file, 0, file.Length);
+                        hapticFeedback.bufferedWaveProvider[Channel].ClearBuffer();
+                        hapticFeedback.bufferedWaveProvider[Channel].AddSamples(file, 0, file.Length);
                     }
 
                     file = null;
@@ -261,20 +270,21 @@ namespace Wujek_Dualsense_API
                             try
                             {
                                 if (ClearBuffer)
-                                    hapticFeedback.bufferedWaveProvider.ClearBuffer();
+                                    hapticFeedback.bufferedWaveProvider[Channel].ClearBuffer();
 
-                                hapticFeedback.bufferedWaveProvider.AddSamples(pair.Value, 0, pair.Value.Length);
+                                hapticFeedback.bufferedWaveProvider[Channel].AddSamples(pair.Value, 0, pair.Value.Length);
                             }
                             catch (Exception)
                             {
-                                hapticFeedback.bufferedWaveProvider.ClearBuffer();
-                                hapticFeedback.bufferedWaveProvider.AddSamples(pair.Value, 0, pair.Value.Length);
+                                hapticFeedback.bufferedWaveProvider[Channel].ClearBuffer();
+                                hapticFeedback.bufferedWaveProvider[Channel].AddSamples(pair.Value, 0, pair.Value.Length);
                             }
                         }
                     }
                 }
             }
         }
+
 
         /// <summary>
         /// Removes WAV files from memory.
@@ -656,10 +666,12 @@ namespace Wujek_Dualsense_API
         {
             if (ReadOnly == false)
             {
-                byte[] outReport = new byte[reportLength];
+                byte[] outReport = null;
 
                 if (this.DeviceType == DeviceType.DualSense || this.DeviceType == DeviceType.DualSense_Edge)
                 {
+                    outReport = new byte[reportLength];
+
                     if (this.ConnectionType == ConnectionType.USB)
                     {
                         outReport[0] = 2;
@@ -749,6 +761,7 @@ namespace Wujek_Dualsense_API
                 {
                     if(this.ConnectionType == ConnectionType.USB)
                     {
+                        outReport = new byte[9];
                         outReport[0] = 0x05;
                         outReport[1] = 0x07;
                         outReport[4] = (byte)RightRotor;
@@ -759,22 +772,44 @@ namespace Wujek_Dualsense_API
                     }
                     else if (this.ConnectionType == ConnectionType.BT)
                     {
-                        outReport[0] = 0x11;
-                        outReport[1] = (0xC0 | 0x15);
-                        outReport[3] = 0x07;
-                        outReport[4] = 0x04;
+                        outReport = new byte[78]; // doesnt work
+                        outReport[0] = 0xa2;
+                        outReport[1] = 0x11;
+                        outReport[2] = 0xc0;
+                        outReport[3] = 0x20;
+                        outReport[4] = 0xf4;
+                        outReport[5] = 0x04;
+                        outReport[6] = 0x00;
 
-                        outReport[6] = (byte)RightRotor;
-                        outReport[7] = (byte)LeftRotor;
-                        outReport[8] = (byte)lightbar.R;
-                        outReport[9] = (byte)lightbar.G;
-                        outReport[10] = (byte)lightbar.B;
+                        outReport[7] = (byte)RightRotor;
+                        outReport[8] = (byte)LeftRotor;
+                        outReport[9] = (byte)lightbar.R;
+                        outReport[10] = (byte)lightbar.G;
+                        outReport[11] = (byte)lightbar.B;
+                        outReport[22] = 0x43;
+                        outReport[23] = 0x43;
+                        outReport[22] = 0x00;
+                        outReport[23] = 0x4d;
+                        outReport[24] = 0x85;
+
+                        uint crc32 = CRC32.Crc32(outReport, 75);
+
+                        for (int i = 0; i < outReport.Length - 4; i++)
+                        {
+                            outReport[i] = outReport[i + 1];
+                        }
+
+                        outReport[74] = (byte)(crc32 & 0xFF);
+                        outReport[75] = (byte)(crc32 >> 8 & 0xFF);
+                        outReport[76] = (byte)(crc32 >> 16 & 0xFF);
+                        outReport[77] = (byte)(crc32 >> 24);
                     }
                 }
 
                 try
                 {
-                    DSDevice.WriteAsync(outReport, 0, reportLength);
+                    if(outReport != null)
+                        DSDevice.WriteAsync(outReport, 0, outReport.Length);
                 }
                 catch (Exception e)
                 {
@@ -827,7 +862,9 @@ namespace Wujek_Dualsense_API
                 }
                 else
                 {
-                    reportLength = 547;
+                    throw new Exception("This application doesn't support DualShock 4 over Bluetooth");
+                    Dispose(); // bluetooth not supported for now
+                    reportLength = 77;
                     offset = 0; // ???
                     return ConnectionType.BT;
                 }
