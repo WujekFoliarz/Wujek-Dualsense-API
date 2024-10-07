@@ -129,6 +129,7 @@ namespace Wujek_Dualsense_API
             audioPassthroughBuffer.BufferLength = 5000000; // 5MB buffer
             audioPassthroughBuffer.ReadFully = true;
             audioPassthroughBuffer.DiscardOnBufferOverflow = true;
+            audioPassthroughStream = new WasapiOut(device, AudioClientShareMode.Shared, true, 10);
 
             MultiplexingWaveProvider multiplexingWaveProviderAP = new MultiplexingWaveProvider(new BufferedWaveProvider[] {
                 audioPassthroughBuffer,
@@ -138,8 +139,6 @@ namespace Wujek_Dualsense_API
             multiplexingWaveProviderAP.ConnectInputToOutput(0, 1);
             multiplexingWaveProviderAP.ConnectInputToOutput(0, 2);
             multiplexingWaveProviderAP.ConnectInputToOutput(1, 3);
-
-            HapticsWaveProvider.AddInputStream(multiplexingWaveProviderAP);
 
 
             // Start the streams
@@ -153,8 +152,14 @@ namespace Wujek_Dualsense_API
             t2.IsBackground = true;
             t2.Start();
 
+            audioPassthroughStream.Init(multiplexingWaveProviderAP);
+            Thread t3 = new Thread(new ThreadStart(PlayPassthrough));
+            t3.IsBackground = true;
+            t3.Start();
+
             setVolume(leftActuatorVolume, rightActuatorVolume);
             setSpeakerVolume(speakerPlaybackVolume);
+            setAudioPassthroughVolume(speakerPlaybackVolume, leftActuatorVolume, rightActuatorVolume);
         }
 
         public void setNewPlayback()
@@ -204,6 +209,11 @@ namespace Wujek_Dualsense_API
             speakerStream.Play();
         }
 
+        private void PlayPassthrough()
+        {
+            audioPassthroughStream.Play();
+        }
+
         public void setSpeakerVolume(float SpeakerVolume)
         {
             if (hapticStream != null)
@@ -218,6 +228,27 @@ namespace Wujek_Dualsense_API
                         speakerStream.AudioStreamVolume.SetChannelVolume(1, speakerPlaybackVolume);
                         speakerStream.AudioStreamVolume.SetChannelVolume(2, 0);
                         speakerStream.AudioStreamVolume.SetChannelVolume(3, 0);
+                    }
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    throw new ArgumentOutOfRangeException("Volume must be between 0.0 and 1.0.");
+                }
+            }
+        }
+
+        public void setAudioPassthroughVolume(float SpeakerVolume, float left, float right)
+        {
+            if (hapticStream != null)
+            {
+                try
+                {
+                    if (audioPassthroughStream != null)
+                    {
+                        audioPassthroughStream.AudioStreamVolume.SetChannelVolume(0, SpeakerVolume);
+                        audioPassthroughStream.AudioStreamVolume.SetChannelVolume(1, SpeakerVolume);
+                        audioPassthroughStream.AudioStreamVolume.SetChannelVolume(2, left);
+                        audioPassthroughStream.AudioStreamVolume.SetChannelVolume(3, right);
                     }
                 }
                 catch (ArgumentOutOfRangeException)
@@ -242,14 +273,6 @@ namespace Wujek_Dualsense_API
                         hapticStream.AudioStreamVolume.SetChannelVolume(1, 0);
                         hapticStream.AudioStreamVolume.SetChannelVolume(2, leftActuatorVolume);
                         hapticStream.AudioStreamVolume.SetChannelVolume(3, rightActuatorVolume);
-                    }
-
-                    if (audioPassthroughStream != null)
-                    {
-                        audioPassthroughStream.AudioStreamVolume.SetChannelVolume(0, speakerPlaybackVolume);
-                        audioPassthroughStream.AudioStreamVolume.SetChannelVolume(1, speakerPlaybackVolume);
-                        audioPassthroughStream.AudioStreamVolume.SetChannelVolume(2, leftActuatorVolume);
-                        audioPassthroughStream.AudioStreamVolume.SetChannelVolume(3, rightActuatorVolume);
                     }
                 }
                 catch (ArgumentOutOfRangeException)

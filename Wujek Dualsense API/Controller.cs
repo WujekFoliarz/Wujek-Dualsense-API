@@ -197,7 +197,6 @@ namespace Wujek_Dualsense_API
         /// Plays local WAV file on your controller
         /// </summary>
         /// <param name="PathToWAV">Path to WAV file located on user's computer</param>
-        /// <param name="FileVolumeSpeaker">Sets volume of the speaker</param>
         /// <param name="fileVolumeLeftActuator">Sets vibration force of the left side</param>
         /// <param name="fileVolumeRightActuator">Sets vibration force of the right side</param>
         /// <param name="ClearBuffer">When set to true, all previous sounds are cancelled in favour of the current one</param>
@@ -290,8 +289,6 @@ namespace Wujek_Dualsense_API
         /// </summary>
         /// <param name="PathToWAV">Path to WAV file located on user's computer</param>
         /// <param name="FileVolumeSpeaker">Sets volume of the speaker</param>
-        /// <param name="fileVolumeLeftActuator">Sets vibration force of the left side</param>
-        /// <param name="fileVolumeRightActuator">Sets vibration force of the right side</param>
         /// <param name="ClearBuffer">When set to true, all previous sounds are cancelled in favour of the current one</param>
         /// <returns></returns>
         public void PlaySpeaker(string PathToWAV, float FileVolumeSpeaker, bool ClearBuffer)
@@ -494,6 +491,18 @@ namespace Wujek_Dualsense_API
             {
                 hapticFeedback.setVolume(LeftActuatorVolume, RightActuatorVolume);
                 hapticFeedback.setSpeakerVolume(SpeakerVolume);
+            }
+        }
+
+        /// <summary>
+        /// Sets the controller's speaker and actuator volumes on system audio passthrough stream
+        /// </summary>
+        /// <returns></returns>
+        public void SetSystemAudioToHapticsVolume(float SpeakerVolume, float LeftActuatorVolume, float RightActuatorVolume)
+        {
+            if (hapticFeedback != null && this.ConnectionType == ConnectionType.USB && rumbleMode == Vibrations.VibrationType.Haptic_Feedback)
+            {
+                hapticFeedback.setAudioPassthroughVolume(SpeakerVolume, LeftActuatorVolume, RightActuatorVolume);
             }
         }
 
