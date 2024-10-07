@@ -202,7 +202,7 @@ namespace Wujek_Dualsense_API
         /// <param name="fileVolumeRightActuator">Sets vibration force of the right side</param>
         /// <param name="ClearBuffer">When set to true, all previous sounds are cancelled in favour of the current one</param>
         /// <returns></returns>
-        public void PlayHaptics(string PathToWAV, float FileVolumeSpeaker, float fileVolumeLeftActuator, float fileVolumeRightActuator, bool ClearBuffer, int Channel)
+        public void PlayHaptics(string PathToWAV, float fileVolumeLeftActuator, float fileVolumeRightActuator, bool ClearBuffer, int Channel)
         {
             if(Channel > 10 || Channel < 0)
             {
@@ -215,7 +215,7 @@ namespace Wujek_Dualsense_API
 
             if (this.ConnectionType == ConnectionType.USB && rumbleMode == Vibrations.VibrationType.Haptic_Feedback && hapticFeedback != null)
             {
-                hapticFeedback.setVolume(FileVolumeSpeaker, fileVolumeLeftActuator, fileVolumeRightActuator);
+                hapticFeedback.setVolume(fileVolumeLeftActuator, fileVolumeRightActuator);
 
                 if (!WAV_CACHE.ContainsKey(PathToWAV))
                 {
@@ -278,6 +278,89 @@ namespace Wujek_Dualsense_API
                             {
                                 hapticFeedback.bufferedWaveProvider[Channel].ClearBuffer();
                                 hapticFeedback.bufferedWaveProvider[Channel].AddSamples(pair.Value, 0, pair.Value.Length);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Plays local WAV file on your controller
+        /// </summary>
+        /// <param name="PathToWAV">Path to WAV file located on user's computer</param>
+        /// <param name="FileVolumeSpeaker">Sets volume of the speaker</param>
+        /// <param name="fileVolumeLeftActuator">Sets vibration force of the left side</param>
+        /// <param name="fileVolumeRightActuator">Sets vibration force of the right side</param>
+        /// <param name="ClearBuffer">When set to true, all previous sounds are cancelled in favour of the current one</param>
+        /// <returns></returns>
+        public void PlaySpeaker(string PathToWAV, float FileVolumeSpeaker, bool ClearBuffer)
+        {
+            if (this.ConnectionType == ConnectionType.USB && rumbleMode == Vibrations.VibrationType.Haptic_Feedback && hapticFeedback != null)
+            {
+                hapticFeedback.setSpeakerVolume(FileVolumeSpeaker);
+
+                if (!WAV_CACHE.ContainsKey(PathToWAV))
+                {
+                    byte[] file = File.ReadAllBytes(PathToWAV);
+                    try
+                    {
+                        WAV_CACHE.Add(PathToWAV, file);
+                    }
+                    catch (ArgumentException)
+                    {
+                        foreach (KeyValuePair<string, byte[]> pair in WAV_CACHE)
+                        {
+                            if (pair.Key == PathToWAV)
+                            {
+                                try
+                                {
+                                    if (ClearBuffer)
+                                        hapticFeedback.BufferSpeaker.ClearBuffer();
+
+                                    hapticFeedback.BufferSpeaker.AddSamples(pair.Value, 0, pair.Value.Length);
+                                }
+                                catch (Exception)
+                                {
+                                    hapticFeedback.BufferSpeaker.ClearBuffer();
+                                    hapticFeedback.BufferSpeaker.AddSamples(pair.Value, 0, pair.Value.Length);
+                                }
+                            }
+                        }
+                    }
+
+                    try
+                    {
+                        if (ClearBuffer)
+                            hapticFeedback.BufferSpeaker.ClearBuffer();
+
+                        hapticFeedback.BufferSpeaker.AddSamples(file, 0, file.Length);
+                    }
+                    catch (Exception)
+                    {
+                        hapticFeedback.BufferSpeaker.ClearBuffer();
+                        hapticFeedback.BufferSpeaker.AddSamples(file, 0, file.Length);
+                    }
+
+                    file = null;
+                }
+                else
+                {
+                    foreach (KeyValuePair<string, byte[]> pair in WAV_CACHE)
+                    {
+                        if (pair.Key == PathToWAV)
+                        {
+                            try
+                            {
+                                if (ClearBuffer)
+                                    hapticFeedback.BufferSpeaker.ClearBuffer();
+
+                                hapticFeedback.BufferSpeaker.AddSamples(pair.Value, 0, pair.Value.Length);
+                            }
+                            catch (Exception)
+                            {
+                                hapticFeedback.BufferSpeaker.ClearBuffer();
+                                hapticFeedback.BufferSpeaker.AddSamples(pair.Value, 0, pair.Value.Length);
                             }
                         }
                     }
@@ -409,7 +492,8 @@ namespace Wujek_Dualsense_API
         {
             if (hapticFeedback != null && this.ConnectionType == ConnectionType.USB && rumbleMode == Vibrations.VibrationType.Haptic_Feedback)
             {
-                hapticFeedback.setVolume(SpeakerVolume, LeftActuatorVolume, RightActuatorVolume);
+                hapticFeedback.setVolume(LeftActuatorVolume, RightActuatorVolume);
+                hapticFeedback.setSpeakerVolume(SpeakerVolume);
             }
         }
 
