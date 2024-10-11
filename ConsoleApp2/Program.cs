@@ -15,9 +15,10 @@ namespace ConsoleApp2
             dualsense.SetLightbar(0, 255, 255);
             dualsense.SetAudioOutput(AudioOutput.SPEAKER);
             dualsense.TurnMicrophoneOn();
-            dualsense.StartSystemAudioToHaptics();
+            dualsense.PlaySpeaker(@"C:\Users\Igor\Documents\DualSenseY\blip.wav", 1, true);
 
             dualsense.SetSystemAudioToHapticsVolume(0, 1, 1);
+
 
             void Connection_ControllerDisconnected(object? sender, ConnectionStatus.Controller e)
             {

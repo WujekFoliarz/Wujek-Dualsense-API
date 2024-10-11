@@ -284,6 +284,46 @@ namespace Wujek_Dualsense_API
             }
         }
 
+        public byte[] ChangeWaveVolume(byte[] wavFileBytes, float volumeScale)
+        {
+            // Ensure the volumeScale is between 0 and 1 for reducing volume, and above 1 for amplifying.
+            if (volumeScale < 0)
+                throw new ArgumentException("Volume scale cannot be negative.");
+
+            // WAV file headers are 44 bytes long.
+            const int wavHeaderSize = 44;
+
+            // Check if the input is at least large enough to be a valid WAV file.
+            if (wavFileBytes.Length < wavHeaderSize)
+                throw new ArgumentException("Invalid WAV file.");
+
+            // Copy the header without modifying it.
+            byte[] newWavFileBytes = new byte[wavFileBytes.Length];
+            Array.Copy(wavFileBytes, newWavFileBytes, wavHeaderSize);
+
+            // WAV data typically starts at byte 44 (header size).
+            for (int i = wavHeaderSize; i < wavFileBytes.Length; i += 2)
+            {
+                // WAV audio data is usually stored in 16-bit samples (2 bytes per sample).
+                // Read the sample (little-endian).
+                short sample = BitConverter.ToInt16(wavFileBytes, i);
+
+                // Scale the sample by the volumeScale.
+                int newSample = (int)(sample * volumeScale);
+
+                // Clamp the value to prevent overflow.
+                if (newSample > short.MaxValue) newSample = short.MaxValue;
+                if (newSample < short.MinValue) newSample = short.MinValue;
+
+                // Write the new sample back into the byte array (little-endian).
+                byte[] newSampleBytes = BitConverter.GetBytes((short)newSample);
+                newWavFileBytes[i] = newSampleBytes[0];
+                newWavFileBytes[i + 1] = newSampleBytes[1];
+            }
+
+            return newWavFileBytes;
+        }
+
         /// <summary>
         /// Plays local WAV file on your controller
         /// </summary>
@@ -299,7 +339,8 @@ namespace Wujek_Dualsense_API
 
                 if (!WAV_CACHE.ContainsKey(PathToWAV))
                 {
-                    byte[] file = File.ReadAllBytes(PathToWAV);
+                    byte[] file = ChangeWaveVolume(File.ReadAllBytes(PathToWAV), 1f);
+
                     try
                     {
                         WAV_CACHE.Add(PathToWAV, file);
@@ -663,6 +704,8 @@ namespace Wujek_Dualsense_API
                     ButtonState.accelerometer.Y = BitConverter.ToInt16(new byte[] { ButtonStates[24 + offset], ButtonStates[25 + offset] }, 0);
                     ButtonState.accelerometer.Z = BitConverter.ToInt16(new byte[] { ButtonStates[26 + offset], ButtonStates[27 + offset] }, 0);
 
+                    ButtonState.accelerometer.SensorTimestamp = BitConverter.ToInt16(new byte[] { ButtonStates[28 + offset], ButtonStates[29 + offset] }, 0);
+
                     // battery
                     this.Battery.State = (BatteryState.State)((byte)(ButtonStates[53 + offset] & 0xF0) >> 4);
                     this.Battery.Level = Math.Min((int)((ButtonStates[53 + offset] & 0x0F) * 10 + 5), 100);
@@ -704,6 +747,8 @@ namespace Wujek_Dualsense_API
 
                     ButtonState.L2 = ButtonStates[8 + offset];
                     ButtonState.R2 = ButtonStates[9 + offset];
+
+                    ButtonState.accelerometer.SensorTimestamp = BitConverter.ToInt16(new byte[] { ButtonStates[10 + offset], ButtonStates[11 + offset] }, 0);
 
                     this.Battery.State = (BatteryState.State)((byte)(ButtonStates[12 + offset] & 0xF0) >> 4);
                     this.Battery.Level = Math.Min((int)((ButtonStates[12 + offset] & 0x0F) * 10 + 5), 100);
